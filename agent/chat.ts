@@ -42,7 +42,7 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
                 btn.onclick = () => {
                     const text = decodeURIComponent(
                         btn.getAttribute("data-raw"),
-                    ).replace(/(^\`{3}.*|\`*$)/g, "").trim();
+                    ).trim().replace(/(^\`{3}.*|\`{3}$)/g, "").trim();
                     const lang = btn.getAttribute("data-lang");
                     createFile(text, lang);
                 };
