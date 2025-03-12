@@ -8,5 +8,8 @@
         "marked": "^15.0.7",
         "marked-highlight": "^2.2.1",
         "ollama": "^0.5.14"
+    },
+    "devDependencies": {
+        "eruda": "^3.4.1"
     }
 }

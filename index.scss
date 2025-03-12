@@ -1,4 +1,6 @@
 @use "./node_modules/@fullstacked/ui/values/colors.scss" as c;
+@use "./node_modules/@fullstacked/ui/values/spacing.scss" as s;
+@use "./node_modules/@fullstacked/ui/values/typography.scss" as t;
 @use "./node_modules/@fullstacked/ui/ui.scss";
 
 @use "./agent/configure.scss";
@@ -19,6 +21,22 @@ main {
         height: 100%;
         max-width: 50%;
         max-height: 100%;
+        overflow: auto;
+    }
+
+    > .agent-container {
+        display: flex;
+        flex-direction: column;
+        padding: 0 s.$medium s.$x-small;
+        > .agent-stats {
+            display: flex;
+            align-items: flex-end;
+            height: 18px;
+            min-height: 18px;
+            font-weight: bold;
+            color: c.$gray;
+            font-size: t.$small;
+        }
     }
 
     @media (max-width: 768px) {

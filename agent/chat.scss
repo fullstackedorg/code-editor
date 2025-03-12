@@ -4,9 +4,9 @@
 .agent-chat {
     display: flex;
     flex-direction: column;
-    padding: 0 s.$medium s.$medium;
-    height: 100%;
+    flex: 1;
     gap: s.$small;
+    overflow: hidden;
 
     form {
         margin: 0;
@@ -26,9 +26,16 @@
             border-radius: s.$x-small;
             padding: 0 s.$x-small;
         }
-        
-        pre {
-            
+
+        .code-block {
+            width: 100%;
+            position: relative;
+
+            .actions {
+                position: absolute;
+                right: s.$small;
+                top: s.$small;
+            }
         }
 
         pre {
@@ -36,8 +43,9 @@
             border-radius: s.$x-small;
             overflow: auto;
             width: 100%;
-            padding: s.$small s.$medium;
+            padding: s.$small;
             margin: s.$medium 0;
+            
             > code {
                 background-color: transparent;
             }
