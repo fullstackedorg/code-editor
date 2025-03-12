@@ -1,0 +1,46 @@
+@use "../node_modules/@fullstacked/ui/values/spacing.scss" as s;
+@use "../node_modules/@fullstacked/ui/values/colors.scss" as c;
+
+.agent-chat {
+    display: flex;
+    flex-direction: column;
+    padding: 0 s.$medium s.$medium;
+    height: 100%;
+    gap: s.$small;
+
+    form {
+        margin: 0;
+    }
+
+    .conversation {
+        flex: 1;
+        overflow: auto;
+
+        p,
+        li {
+            margin: s.$small 0;
+        }
+
+        code {
+            background-color: c.$gray-dark;
+            border-radius: s.$x-small;
+            padding: 0 s.$x-small;
+        }
+        
+        pre {
+            
+        }
+
+        pre {
+            background-color: c.$dark;
+            border-radius: s.$x-small;
+            overflow: auto;
+            width: 100%;
+            padding: s.$small s.$medium;
+            margin: s.$medium 0;
+            > code {
+                background-color: transparent;
+            }
+        }
+    }
+}
