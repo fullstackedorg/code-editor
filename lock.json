@@ -79,9 +79,9 @@
                 "^6.36.4",
                 "^6.0.0",
                 "^6.23.0",
+                "^6.17.0",
                 "^6.27.0",
-                "^6.35.0",
-                "^6.17.0"
+                "^6.35.0"
             ],
             "location": [
                 "node_modules"
@@ -102,8 +102,8 @@
             "name": "@lezer/common",
             "version": "1.2.3",
             "as": [
-                "^1.1.0",
-                "^1.0.0"
+                "^1.0.0",
+                "^1.1.0"
             ],
             "location": [
                 "node_modules"
@@ -164,36 +164,6 @@
             "version": "3.4.1",
             "as": [
                 "^3.4.1"
-            ],
-            "location": [
-                "node_modules"
-            ]
-        },
-        {
-            "name": "highlight.js",
-            "version": "11.11.1",
-            "as": [
-                "^11.11.1"
-            ],
-            "location": [
-                "node_modules"
-            ]
-        },
-        {
-            "name": "marked",
-            "version": "15.0.7",
-            "as": [
-                "^15.0.7"
-            ],
-            "location": [
-                "node_modules"
-            ]
-        },
-        {
-            "name": "marked-highlight",
-            "version": "2.2.1",
-            "as": [
-                "^2.2.1"
             ],
             "location": [
                 "node_modules"

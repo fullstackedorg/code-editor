@@ -1,10 +1,7 @@
 import { InputText } from "@fullstacked/ui";
 import { chat, updateStats } from "./ollama";
-import { marked, MarkedExtension } from "marked";
-import { markedHighlight } from "marked-highlight";
-import hljs from "highlight.js";
-import "highlight.js/styles/github-dark.css";
 import { ChatResponse } from "ollama";
+import { createRenderer } from "../markdown/renderer";
 
 export default function Chat(createFile: (text: string, lang: string) => void) {
     const container = document.createElement("div");
@@ -26,11 +23,13 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
         const stream = await chat(promptInput.input.value);
         promptInput.input.value = "";
 
+        const renderer = createRenderer(conversation);
+
         let rawText = "", lastChunk: ChatResponse = null;
         for await (const chunk of stream) {
             lastChunk = chunk;
             rawText += chunk.message.content;
-            conversation.innerHTML = await marked.parse(rawText);
+            renderer.write(chunk.message.content);
             conversation.scrollTop = conversation.scrollHeight;
         }
 
@@ -53,31 +52,3 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
 
     return container;
 }
-
-const highlight = markedHighlight({
-    async: true,
-    emptyLangClass: "hljs",
-    langPrefix: "hljs language-",
-    highlight(code, lang) {
-        const language = hljs.getLanguage(lang) ? lang : "plaintext";
-        return hljs.highlight(code, { language }).value;
-    },
-});
-
-const codeExtension: MarkedExtension = {
-    renderer: {
-        code(args) {
-            return `<div class="code-block">
-                <div class="actions">
-                    <button 
-                        data-raw="${encodeURIComponent(args.raw)}"
-                        data-lang="${args.lang}"
-                    >To File</button>
-                </div>
-                <pre>${args.text}</pre>
-            </div>`;
-        },
-    },
-};
-
-marked.use(highlight, codeExtension);
