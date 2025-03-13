@@ -27,27 +27,15 @@
             padding: 0 s.$x-small;
         }
 
-        .code-block {
+        .cm-container {
             width: 100%;
             position: relative;
 
             .actions {
+                z-index: 10;
                 position: absolute;
                 right: s.$small;
                 top: s.$small;
-            }
-        }
-
-        pre {
-            background-color: c.$dark;
-            border-radius: s.$x-small;
-            overflow: auto;
-            width: 100%;
-            padding: s.$small;
-            margin: s.$medium 0;
-            
-            > code {
-                background-color: transparent;
             }
         }
     }
