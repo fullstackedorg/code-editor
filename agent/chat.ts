@@ -33,6 +33,8 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
             conversation.scrollTop = conversation.scrollHeight;
         }
 
+        console.log(rawText)
+
         updateStats(lastChunk.eval_count, lastChunk.eval_duration)
 
         conversation
