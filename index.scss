@@ -27,7 +27,7 @@ main {
     > .agent-container {
         display: flex;
         flex-direction: column;
-        padding: 0 s.$medium s.$x-small;
+        padding-bottom: s.$x-small;
         > .agent-stats {
             display: flex;
             align-items: flex-end;
@@ -36,6 +36,18 @@ main {
             font-weight: bold;
             color: c.$gray;
             font-size: t.$small;
+        }
+
+        > .agent-stats,
+        > .agent-chat > form,
+        > .agent-chat > .conversation {
+            padding-left: s.$medium;
+            padding-right: s.$medium;
+        }
+
+        > .agent-chat > form {
+            padding-top: s.$x-small;
+            padding-bottom: s.$x-small;
         }
     }
 

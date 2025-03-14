@@ -4,11 +4,16 @@ import { EditorState } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { configureForm } from "./agent/configure";
 import fs from "fs";
-import { addStatsListener, complete, initOllama, updateStats } from "./agent/ollama";
+import {
+    addStatsListener,
+    complete,
+    initOllama,
+    updateStats,
+} from "./agent/ollama";
 import Chat from "./agent/chat";
 import eruda from "eruda";
 import { loadLanguageExtension } from "./cm-lang";
-import { inlineSuggestion } from 'codemirror-extension-inline-suggestion';
+import { inlineSuggestion } from "codemirror-extension-inline-suggestion";
 eruda.init();
 
 const agentContainer = document.createElement("div");
@@ -26,9 +31,9 @@ async function getAutocomplete(state: EditorState) {
     const cursor = state.selection.main.head;
     const prefix = text.slice(0, cursor);
     const suffix = text.slice(cursor);
-    const response = await complete(prefix, suffix)
-    updateStats(response.eval_count, response.eval_duration)
-    return response.response
+    const response = await complete(prefix, suffix);
+    // updateStats(response.eval_count, response.eval_duration)
+    return response.choices.at(0).text;
 }
 
 const update = (text: string, lang: string) => {
@@ -39,9 +44,12 @@ const update = (text: string, lang: string) => {
         doc: text,
         parent: codeEditorContainer,
         extensions: [
-            oneDark, basicSetup, inlineSuggestion({ fetchFn: getAutocomplete, delay: 500, })],
+            oneDark,
+            basicSetup,
+            inlineSuggestion({ fetchFn: getAutocomplete, delay: 500 }),
+        ],
     });
-    loadLanguageExtension(editor, lang)
+    loadLanguageExtension(editor, lang);
 };
 
 const endpointFile = "data/ollama-endpoint.txt";

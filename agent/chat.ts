@@ -49,7 +49,7 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
             }) as EditorView & {
                 setAttribute(attr: string, value: string): void;
                 appendChild(text: Text): void;
-                lang: string
+                lang: string;
             };
             slot.setAttribute = async function (attr, value) {
                 if (attr !== "class") return;
@@ -78,19 +78,24 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
         };
         const parser = smd.parser(renderer);
 
-        let rawText = "",
-            lastChunk: ChatResponse = null;
+        let rawText = "";
+        // ,
+        // lastChunk: ChatResponse = null;
         for await (const chunk of stream) {
-            lastChunk = chunk;
-            rawText += chunk.message.content;
-            smd.parser_write(parser, chunk.message.content);
+            // lastChunk = chunk;
+            // rawText += chunk.message.content;
+            // smd.parser_write(parser, chunk.message.content);
+
+            const text = chunk.choices?.at(0)?.delta?.content || "";
+            rawText += text;
+            smd.parser_write(parser, text);
             conversation.scrollTop = conversation.scrollHeight;
         }
         smd.parser_end(parser);
 
         console.log(rawText);
 
-        updateStats(lastChunk.eval_count, lastChunk.eval_duration);
+        // updateStats(lastChunk.eval_count, lastChunk.eval_duration);
     };
 
     container.append(conversation, form);

@@ -1,25 +1,20 @@
 import { core_fetch2 } from "fetch";
-import { Ollama } from "ollama";
-//@ts-ignore
-import * as o from "ollama/browser";
+import OpenAI from "openai";
 
-let ollama: Ollama = null;
+let openai: OpenAI = null;
+
 export async function initOllama(host: string) {
-    const opts: ConstructorParameters<typeof Ollama>[0] = {
-        host,
+    openai = new OpenAI({
+        baseURL: `${host}/v1`,
+        apiKey: "ollama",
+        dangerouslyAllowBrowser: true,
         fetch: core_fetch2,
-    };
-    ollama = new o.Ollama(opts);
-    try {
-        await ollama.ps();
-        return true;
-    } catch (e) {
-        return false;
-    }
+    });
+    return true;
 }
 
 export async function chat(prompt: string) {
-    return ollama.chat({
+    return openai.chat.completions.create({
         model: "llama3.1:8b",
         messages: [{ role: "user", content: prompt }],
         stream: true,
@@ -27,11 +22,11 @@ export async function chat(prompt: string) {
 }
 
 export async function complete(prefix: string, suffix: string) {
-    return ollama.generate({
+    return openai.completions.create({
         model: "qwen2.5-coder:1.5b",
         prompt: prefix,
+        suffix,
         stream: false,
-        suffix
     });
 }
 
