@@ -6,6 +6,7 @@ import fs from "fs";
 import { addStatsListener, initOllama } from "./agent/ollama";
 import Chat from "./agent/chat";
 import eruda from "eruda";
+import { loadLanguageExtension } from "./cm-lang";
 eruda.init();
 
 const agentContainer = document.createElement("div");
@@ -16,20 +17,18 @@ const main = document.createElement("main");
 main.append(agentContainer, codeEditorContainer);
 document.body.append(main);
 
-const editor = new EditorView({
-    doc: "",
-    parent: codeEditorContainer,
-    extensions: [oneDark, basicSetup],
-});
+let editor: EditorView = null;
 
-const update = (text: string) => {
-    editor.dispatch({
-        changes: {
-            from: 0,
-            to: editor.state.doc.length,
-            insert: text,
-        },
+const update = (text: string, lang: string) => {
+    if (editor) {
+        editor.destroy();
+    }
+    editor = new EditorView({
+        doc: text,
+        parent: codeEditorContainer,
+        extensions: [oneDark, basicSetup],
     });
+    loadLanguageExtension(editor, lang)
 };
 
 const endpointFile = "data/ollama-endpoint.txt";
@@ -51,16 +50,12 @@ if (!currentEndpoint || !(await initOllama(currentEndpoint))) {
 const stats = document.createElement("div");
 stats.classList.add("agent-stats");
 
-addStatsListener(({tokensPerSec}) => stats.innerText = tokensPerSec.toFixed(2) + " t/s")
+addStatsListener(
+    ({ tokensPerSec }) => (stats.innerText = tokensPerSec.toFixed(2) + " t/s"),
+);
 
-agentContainer.append(stats)
+agentContainer.append(stats);
 
 if (!(await fs.exists("data"))) {
     fs.mkdir("data");
 }
-
-
-
-
-
-

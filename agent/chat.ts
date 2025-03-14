@@ -5,6 +5,7 @@ import * as smd from "streaming-markdown";
 import { basicSetup, EditorView } from "codemirror";
 import { EditorState, StateEffect } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
+import { loadLanguageExtension } from "../cm-lang";
 
 export default function Chat(createFile: (text: string, lang: string) => void) {
     const container = document.createElement("div");
@@ -36,10 +37,6 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
             let parent = data.nodes[data.index];
             const cmContainer = document.createElement("div");
             cmContainer.classList.add("cm-container");
-            const actions = document.createElement("div");
-            actions.classList.add("actions");
-            actions.append(Button({ text: "To File" }));
-            cmContainer.append(actions);
             parent = parent.appendChild(cmContainer);
             const slot = new EditorView({
                 doc: "",
@@ -49,89 +46,17 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
                     basicSetup,
                     EditorState.readOnly.of(true),
                 ],
-            }) as any;
-            slot.setAttribute = async function (attr: string, value: string) {
-                if (attr !== "class") return;
-                switch (value) {
-                    case "javascript":
-                    case "typescript":
-                    case "jsx":
-                    case "tsx":
-                        const { javascript } = await import(
-                            "@codemirror/lang-javascript"
-                        );
-                        slot.dispatch({
-                            effects: StateEffect.appendConfig.of([
-                                javascript({
-                                    typescript: value.startsWith("t"),
-                                    jsx: value.endsWith("x"),
-                                }),
-                            ]),
-                        });
-                        break;
-                    case "css":
-                        const { css } = await import("@codemirror/lang-css");
-                        slot.dispatch({
-                            effects: StateEffect.appendConfig.of([css()]),
-                        });
-                        break;
-                    case "scss":
-                    case "sass":
-                        const { sass } = await import("@codemirror/lang-sass");
-                        slot.dispatch({
-                            effects: StateEffect.appendConfig.of([
-                                sass({
-                                    indented: value.startsWith("sa"),
-                                }),
-                            ]),
-                        });
-                        break;
-                    case "svg":
-                    case "html":
-                        const { html } = await import("@codemirror/lang-html");
-                        slot.dispatch({
-                            effects: StateEffect.appendConfig.of([html()]),
-                        });
-                        break;
-                    case "liquid":
-                        const { liquid } = await import(
-                            "@codemirror/lang-liquid"
-                        );
-                        slot.dispatch({
-                            effects: StateEffect.appendConfig.of([liquid()]),
-                        });
-                        break;
-                    case "go":
-                        const { go } = await import("@codemirror/lang-go");
-                        slot.dispatch({
-                            effects: StateEffect.appendConfig.of([go()]),
-                        });
-                        break;
-                    case "markdown":
-                        const { markdown } = await import(
-                            "@codemirror/lang-markdown"
-                        );
-                        slot.dispatch({
-                            effects: StateEffect.appendConfig.of([markdown()]),
-                        });
-                        break;
-                    case "python":
-                        const { python } = await import(
-                            "@codemirror/lang-python"
-                        );
-                        slot.dispatch({
-                            effects: StateEffect.appendConfig.of([python()]),
-                        });
-                        break;
-                    case "json":
-                        const { json } = await import("@codemirror/lang-json");
-                        slot.dispatch({
-                            effects: StateEffect.appendConfig.of([json()]),
-                        });
-                        break;
-                }
+            }) as EditorView & {
+                setAttribute(attr: string, value: string): void;
+                appendChild(text: Text): void;
+                lang: string
             };
-            slot.appendChild = (text: Text) => {
+            slot.setAttribute = async function (attr, value) {
+                if (attr !== "class") return;
+                slot.lang = value;
+                loadLanguageExtension(slot, value);
+            };
+            slot.appendChild = (text) => {
                 slot.dispatch({
                     changes: {
                         from: slot.state.doc.length,
@@ -139,6 +64,16 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
                     },
                 });
             };
+
+            const actions = document.createElement("div");
+            actions.classList.add("actions");
+            const button = Button({ text: "To File" });
+            button.onclick = () => {
+                createFile(slot.state.doc.toString(), slot.lang);
+            };
+            actions.append(button);
+            cmContainer.append(actions);
+
             data.nodes[++data.index] = slot;
         };
         const parser = smd.parser(renderer);
