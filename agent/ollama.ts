@@ -29,18 +29,3 @@ export async function complete(prefix: string, suffix: string) {
         stream: false,
     });
 }
-
-type StatsListener = (args: { tokensPerSec: number }) => void;
-const statsListener = new Set<StatsListener>();
-export function addStatsListener(cb: StatsListener) {
-    statsListener.add(cb);
-}
-
-let totalCount = 0,
-    totalDuration = 0;
-export async function updateStats(count: number, duration: number) {
-    totalCount += count;
-    totalDuration += duration;
-    const tokensPerSec = (totalCount / totalDuration) * 1e9;
-    statsListener.forEach((cb) => cb({ tokensPerSec }));
-}

@@ -28,17 +28,7 @@ main {
         display: flex;
         flex-direction: column;
         padding-bottom: s.$x-small;
-        > .agent-stats {
-            display: flex;
-            align-items: flex-end;
-            height: 18px;
-            min-height: 18px;
-            font-weight: bold;
-            color: c.$gray;
-            font-size: t.$small;
-        }
 
-        > .agent-stats,
         > .agent-chat > form,
         > .agent-chat > .conversation {
             padding-left: s.$medium;
@@ -47,7 +37,7 @@ main {
 
         > .agent-chat > form {
             padding-top: s.$x-small;
-            padding-bottom: s.$x-small;
+            padding-bottom: s.$medium;
         }
     }
 

@@ -4,12 +4,7 @@ import { EditorState } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { configureForm } from "./agent/configure";
 import fs from "fs";
-import {
-    addStatsListener,
-    complete,
-    initOllama,
-    updateStats,
-} from "./agent/ollama";
+import { complete, initOllama } from "./agent/ollama";
 import Chat from "./agent/chat";
 import eruda from "eruda";
 import { loadLanguageExtension } from "./cm-lang";
@@ -32,7 +27,6 @@ async function getAutocomplete(state: EditorState) {
     const prefix = text.slice(0, cursor);
     const suffix = text.slice(cursor);
     const response = await complete(prefix, suffix);
-    // updateStats(response.eval_count, response.eval_duration)
     return response.choices.at(0).text;
 }
 
@@ -67,15 +61,6 @@ if (!currentEndpoint || !(await initOllama(currentEndpoint))) {
 } else {
     agentContainer.append(Chat(update));
 }
-
-const stats = document.createElement("div");
-stats.classList.add("agent-stats");
-
-addStatsListener(
-    ({ tokensPerSec }) => (stats.innerText = tokensPerSec.toFixed(2) + " t/s"),
-);
-
-agentContainer.append(stats);
 
 if (!(await fs.exists("data"))) {
     fs.mkdir("data");

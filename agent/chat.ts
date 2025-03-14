@@ -1,6 +1,5 @@
 import { Button, InputText } from "@fullstacked/ui";
-import { chat, updateStats } from "./ollama";
-import { ChatResponse } from "ollama";
+import { chat } from "./ollama";
 import * as smd from "streaming-markdown";
 import { basicSetup, EditorView } from "codemirror";
 import { EditorState } from "@codemirror/state";
@@ -79,13 +78,7 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
         const parser = smd.parser(renderer);
 
         let rawText = "";
-        // ,
-        // lastChunk: ChatResponse = null;
         for await (const chunk of stream) {
-            // lastChunk = chunk;
-            // rawText += chunk.message.content;
-            // smd.parser_write(parser, chunk.message.content);
-
             const text = chunk.choices?.at(0)?.delta?.content || "";
             rawText += text;
             smd.parser_write(parser, text);
@@ -94,8 +87,6 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
         smd.parser_end(parser);
 
         console.log(rawText);
-
-        // updateStats(lastChunk.eval_count, lastChunk.eval_duration);
     };
 
     container.append(conversation, form);
