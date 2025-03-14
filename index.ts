@@ -1,12 +1,14 @@
 import { basicSetup } from "codemirror";
 import { EditorView } from "@codemirror/view";
+import { EditorState } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { configureForm } from "./agent/configure";
 import fs from "fs";
-import { addStatsListener, initOllama } from "./agent/ollama";
+import { addStatsListener, complete, initOllama, updateStats } from "./agent/ollama";
 import Chat from "./agent/chat";
 import eruda from "eruda";
 import { loadLanguageExtension } from "./cm-lang";
+import { inlineSuggestion } from 'codemirror-extension-inline-suggestion';
 eruda.init();
 
 const agentContainer = document.createElement("div");
@@ -19,6 +21,16 @@ document.body.append(main);
 
 let editor: EditorView = null;
 
+async function getAutocomplete(state: EditorState) {
+    const text = state.doc.toString();
+    const cursor = state.selection.main.head;
+    const prefix = text.slice(0, cursor);
+    const suffix = text.slice(cursor);
+    const response = await complete(prefix, suffix)
+    updateStats(response.eval_count, response.eval_duration)
+    return response.response
+}
+
 const update = (text: string, lang: string) => {
     if (editor) {
         editor.destroy();
@@ -26,7 +38,8 @@ const update = (text: string, lang: string) => {
     editor = new EditorView({
         doc: text,
         parent: codeEditorContainer,
-        extensions: [oneDark, basicSetup],
+        extensions: [
+            oneDark, basicSetup, inlineSuggestion({ fetchFn: getAutocomplete, delay: 500, })],
     });
     loadLanguageExtension(editor, lang)
 };

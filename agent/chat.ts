@@ -3,7 +3,7 @@ import { chat, updateStats } from "./ollama";
 import { ChatResponse } from "ollama";
 import * as smd from "streaming-markdown";
 import { basicSetup, EditorView } from "codemirror";
-import { EditorState, StateEffect } from "@codemirror/state";
+import { EditorState } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { loadLanguageExtension } from "../cm-lang";
 

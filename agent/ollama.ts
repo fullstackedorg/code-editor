@@ -26,6 +26,15 @@ export async function chat(prompt: string) {
     });
 }
 
+export async function complete(prefix: string, suffix: string) {
+    return ollama.generate({
+        model: "qwen2.5-coder:1.5b",
+        prompt: prefix,
+        stream: false,
+        suffix
+    });
+}
+
 type StatsListener = (args: { tokensPerSec: number }) => void;
 const statsListener = new Set<StatsListener>();
 export function addStatsListener(cb: StatsListener) {
