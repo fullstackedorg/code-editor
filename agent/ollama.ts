@@ -25,7 +25,7 @@ export async function complete(prefix: string, suffix: string) {
     return openai.completions.create({
         model: "qwen2.5-coder:1.5b",
         prompt: prefix,
-        suffix,
+        suffix: suffix.trim() ? suffix : " \n",
         stream: false,
     });
 }
@@ -35,7 +35,7 @@ export async function summarize(text: string) {
         model: "llama3.1:8b",
         messages: [{
             role: "system",
-            content: "Summarize in one word only what the user input code does. No Markdown. Text only."
+            content: "Summarize in one word only to name it as a file what the user input code does. No Markdown. Text only. No extension."
         }, {
             role: "user",
             content: text

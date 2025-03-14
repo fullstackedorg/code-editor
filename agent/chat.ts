@@ -1,4 +1,4 @@
-import { Button, Icon, InputText } from "@fullstacked/ui";
+import { Button, InputText } from "@fullstacked/ui";
 import { chat, summarize } from "./ollama";
 import * as smd from "streaming-markdown";
 import { basicSetup, EditorView } from "codemirror";
@@ -88,6 +88,9 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
                 iconRight: "Clipboard",
                 style: "icon-small",
             });
+            copyToClipButton.onclick = () => {
+                copyToClip(slot.state.doc.toString())
+            }
             const createFileButton = Button({
                 iconRight: "File Add",
                 style: "icon-small",
@@ -126,4 +129,14 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
     container.append(conversation, form);
 
     return container;
+}
+
+function copyToClip(text: string) {
+    var input = document.createElement('textarea');
+    input.innerHTML = text;
+    document.body.appendChild(input);
+    input.select();
+    var result = document.execCommand('copy');
+    document.body.removeChild(input);
+    return result;
 }

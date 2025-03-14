@@ -35,6 +35,21 @@ main {
             padding-right: s.$medium;
         }
 
+        > .agent-chat > .conversation .cm-container {
+            margin-left: 0 - s.$medium;
+            margin-right: 0 - s.$medium;
+            width: calc(100% + s.$medium * 2);
+
+            .cm-editor,
+            .cm-gutters {
+                background-color: c.$dark !important;
+            }
+            .cm-activeLine,
+            .cm-activeLineGutter {
+                background-color: transparent!important;
+            }
+        }
+
         > .agent-chat > form {
             padding-top: s.$x-small;
             padding-bottom: s.$medium;
