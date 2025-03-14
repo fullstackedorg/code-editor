@@ -35,7 +35,7 @@ export async function summarize(text: string) {
         model: "llama3.1:8b",
         messages: [{
             role: "system",
-            content: "Summarize in one word only to name it as a file what the user input code does. No Markdown. Text only. No extension."
+            content: "Summarize in one word only what the user input code does to name it as a file. No Markdown. Text only. No extension."
         }, {
             role: "user",
             content: text
