@@ -13,10 +13,10 @@ export async function initOllama(host: string) {
     return true;
 }
 
-export async function chat(prompt: string) {
+export async function chat(messages: Parameters<typeof openai.chat.completions.create>[0]["messages"]) {
     return openai.chat.completions.create({
         model: "llama3.1:8b",
-        messages: [{ role: "user", content: prompt }],
+        messages,
         stream: true,
     });
 }
@@ -26,6 +26,20 @@ export async function complete(prefix: string, suffix: string) {
         model: "qwen2.5-coder:1.5b",
         prompt: prefix,
         suffix,
+        stream: false,
+    });
+}
+
+export async function summarize(text: string) {
+    return openai.chat.completions.create({
+        model: "llama3.1:8b",
+        messages: [{
+            role: "system",
+            content: "Summarize in one word only what the user input code does. No Markdown. Text only."
+        }, {
+            role: "user",
+            content: text
+        }],
         stream: false,
     });
 }

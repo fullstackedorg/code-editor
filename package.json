@@ -11,7 +11,7 @@
         "@codemirror/lang-sass": "^6.0.2",
         "@codemirror/theme-one-dark": "^6.1.2",
         "@codemirror/view": "^6.36.4",
-        "@fullstacked/ui": "github.com:fullstackedorg/ui#f9ae83bd6e172b6a6c03471866653b2fab01ea27",
+        "@fullstacked/ui": "github.com:fullstackedorg/ui#ede6fa9103792d018fa418240bb928c0271f5bdb",
         "codemirror": "^6.0.1",
         "codemirror-extension-inline-suggestion": "^0.0.3",
         "openai": "^4.87.3",

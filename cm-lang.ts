@@ -1,6 +1,20 @@
 import { EditorView } from "codemirror";
 import { StateEffect } from "@codemirror/state";
 
+export function langToExtension(lang: string) {
+    switch (lang) {
+        case "javascript":
+            return "js";
+        case "typescript":
+            return "ts";
+        case "markdown":
+            return "md";
+        case "python":
+            return "py";
+    }
+    return lang;
+}
+
 export async function loadLanguageExtension(editor: EditorView, lang: string) {
     switch (lang) {
         case "javascript":
