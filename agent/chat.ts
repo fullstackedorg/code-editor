@@ -1,10 +1,9 @@
 import { Button, InputText } from "@fullstacked/ui";
 import { chat, summarize } from "./ollama";
 import * as smd from "streaming-markdown";
-import { basicSetup, EditorView } from "codemirror";
+import { languageHighlightExtension, languageToFileExtension } from "../codemirror/languages";
 import { EditorState } from "@codemirror/state";
-import { oneDark } from "@codemirror/theme-one-dark";
-import { langToExtension, loadLanguageExtension } from "../cm-lang";
+import { createCmView } from "../codemirror/view";
 
 export default function Chat(createFile: (text: string, lang: string) => void) {
     const container = document.createElement("div");
@@ -52,31 +51,31 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
             }
 
             let parent = data.nodes[data.index];
-            const cmContainer = document.createElement("div");
-            cmContainer.classList.add("cm-container");
-            parent = parent.appendChild(cmContainer);
-            const slot = new EditorView({
-                doc: "",
-                parent: cmContainer,
-                extensions: [
-                    oneDark,
-                    basicSetup,
-                    EditorState.readOnly.of(true),
-                ],
-            }) as EditorView & {
+            const container = document.createElement("div");
+            container.classList.add("cm-container");
+            parent = parent.appendChild(container);
+            const codeView = createCmView({
+                container,
+                contents: "",
+                extensions: [EditorState.readOnly.of(true)]
+            }) as ReturnType<typeof createCmView> & {
                 setAttribute(attr: string, value: string): void;
                 appendChild(text: Text): void;
                 lang: string;
             };
-            slot.setAttribute = async function (attr, value) {
+            codeView.setAttribute = async function (attr, value) {
                 if (attr !== "class") return;
-                slot.lang = value;
-                loadLanguageExtension(slot, value);
+                codeView.lang = value;
+                const highlightExtension =
+                    await languageHighlightExtension(value);
+                if (highlightExtension) {
+                    codeView.addExtension(highlightExtension)
+                }
             };
-            slot.appendChild = (text) => {
-                slot.dispatch({
+            codeView.appendChild = (text) => {
+                codeView.view.dispatch({
                     changes: {
-                        from: slot.state.doc.length,
+                        from: codeView.view.state.doc.length,
                         insert: text.wholeText,
                     },
                 });
@@ -89,26 +88,26 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
                 style: "icon-small",
             });
             copyToClipButton.onclick = () => {
-                copyToClip(slot.state.doc.toString())
-            }
+                copyToClip(codeView.value);
+            };
             const createFileButton = Button({
                 iconRight: "File Add",
                 style: "icon-small",
             });
             createFileButton.onclick = async () => {
-                const text = slot.state.doc.toString();
-                const lang = slot.lang;
+                const text = codeView.value;
+                const lang = codeView.lang;
                 const summarized = (await summarize(text)).choices.at(0).message
                     .content;
                 const fileName =
                     (summarized.endsWith(".") ? summarized : summarized + ".") +
-                    langToExtension(lang);
+                    languageToFileExtension(lang);
                 createFile("// " + fileName + "\n" + text, lang);
             };
             actions.append(copyToClipButton, createFileButton);
-            cmContainer.append(actions);
+            container.append(actions);
 
-            data.nodes[++data.index] = slot;
+            data.nodes[++data.index] = codeView;
         };
         const parser = smd.parser(renderer);
 
@@ -132,11 +131,11 @@ export default function Chat(createFile: (text: string, lang: string) => void) {
 }
 
 function copyToClip(text: string) {
-    var input = document.createElement('textarea');
+    var input = document.createElement("textarea");
     input.innerHTML = text;
     document.body.appendChild(input);
     input.select();
-    var result = document.execCommand('copy');
+    var result = document.execCommand("copy");
     document.body.removeChild(input);
     return result;
 }
