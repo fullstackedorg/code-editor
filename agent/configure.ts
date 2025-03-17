@@ -1,14 +1,22 @@
-import { Button } from "@fullstacked/ui";
+import { Button, Message } from "@fullstacked/ui";
 import { AgentConfiguration, AgentProvider, providers } from "./providers";
 
-export function createAgentConfigure() {
+export function createConfigure(
+    currentProvider: AgentProvider,
+    configuredProvider: (provider: AgentProvider) => void,
+) {
     const container = document.createElement("div");
 
     const select = document.createElement("select");
-    const options = providers.map(({ name }, i) => {
+    const options = providers.map((p, i) => {
         const option = document.createElement("option");
         option.value = i.toString();
-        option.innerText = name;
+        option.innerText = p.name;
+
+        if(p.name === currentProvider.name) {
+            option.selected = true;
+        }
+        
         return option;
     });
 
@@ -19,7 +27,15 @@ export function createAgentConfigure() {
     let selectedProvider: AgentProvider;
     let providerForm: HTMLFormElement;
 
+    let message: ReturnType<typeof Message> = document.createElement("div");
+    const resetMessage = () => {
+        const m = document.createElement("div");
+        message.replaceWith(m);
+        message = m;
+    };
+
     const setProviderForm = () => {
+        resetMessage();
         const indexOf = parseInt(select.value);
         selectedProvider = providers.at(indexOf);
         const f = selectedProvider.form();
@@ -29,6 +45,9 @@ export function createAgentConfigure() {
             container.append(f);
         }
         providerForm = f;
+        providerForm.onsubmit = (e) => {
+            e.preventDefault();
+        };
     };
     select.onchange = setProviderForm;
     setProviderForm();
@@ -37,12 +56,26 @@ export function createAgentConfigure() {
         text: "Test",
         style: "text",
     });
+
     testButton.onclick = async () => {
+        resetMessage();
         testButton.disabled = true;
         saveButton.disabled = true;
 
         const config = formToObj(providerForm);
-        selectedProvider.test(config);
+        console.log(selectedProvider)
+        const success = await selectedProvider.test(config);
+
+        const m = success
+            ? Message({
+                  text: "Connection success",
+              })
+            : Message({
+                  text: "Connection failed",
+                  style: "warning",
+              });
+        message.replaceWith(m);
+        message = m;
 
         testButton.disabled = false;
         saveButton.disabled = false;
@@ -51,9 +84,25 @@ export function createAgentConfigure() {
     const saveButton = Button({
         text: "Save",
     });
+    saveButton.onclick = async () => {
+        testButton.disabled = true;
+        saveButton.disabled = true;
+
+        const config = formToObj(providerForm);
+        selectedProvider.configure(config);
+        const m = Message({
+            text: "Configuration saved",
+        });
+        message.replaceWith(m);
+        message = m;
+        configuredProvider(selectedProvider);
+
+        testButton.disabled = false;
+        saveButton.disabled = false;
+    };
 
     const buttons = document.createElement("div");
-    buttons.append(testButton, saveButton);
+    buttons.append(message, testButton, saveButton);
     container.append(buttons);
 
     return container;

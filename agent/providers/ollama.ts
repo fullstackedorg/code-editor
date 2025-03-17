@@ -11,9 +11,10 @@ export type OllamaConfiguration = {
     extraHeaders?: Record<string, string>;
 };
 
+let clientConfig: OllamaConfiguration = null;
 let client: ollama.Ollama = null;
 
-function createClient(config: Partial<OllamaConfiguration>) {
+function createClient(config: Partial<OllamaConfiguration>): ollama.Ollama {
     const opts: ollama.Config = {
         host: config.host,
         fetch: core_fetch2,
@@ -25,7 +26,16 @@ function createClient(config: Partial<OllamaConfiguration>) {
 export const Ollama: AgentProvider = {
     name: "Ollama",
     configure(config: OllamaConfiguration) {
+        clientConfig = config;
         client = createClient(config);
+    },
+    getConfig: () => {
+        if (!client) return null;
+        return {
+            type: "ollama",
+            host: clientConfig.host,
+            extraHeaders: clientConfig.extraHeaders || {},
+        };
     },
     async test(config?: Partial<OllamaConfiguration>) {
         let testClient = config ? createClient(config) : client;
@@ -45,18 +55,40 @@ export const Ollama: AgentProvider = {
         const hostInput = InputText({
             label: "Host",
         });
-        hostInput.input.value = "http://localhost:11434";
+        hostInput.input.name = "host";
+        hostInput.input.value = clientConfig?.host || "http://localhost:11434";
 
         form.append(hostInput.container);
 
         return form;
     },
-    chat(messages) {
-        return client.chat({
+    async chat(message) {
+        const response = await client.chat({
             model: "llama3.1:8b",
-            messages,
+            messages: [{ role: "user", content: message }],
             stream: true,
         });
+
+        const iterator = response[Symbol.asyncIterator]();
+
+        return {
+            [Symbol.asyncIterator]() {
+                return {
+                    async next() {
+                        const { done, value } = await iterator.next();
+                        if (done) {
+                            return { done, value };
+                        }
+
+                        return {
+                            done,
+                            value: (value as ollama.ChatResponse).message
+                                .content,
+                        };
+                    },
+                };
+            },
+        };
     },
     completion(prompt, suffix) {
         return client.generate({

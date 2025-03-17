@@ -13,8 +13,15 @@ export function createPrompt(editorInstance: Editor){
     form.onsubmit = e => {
         e.preventDefault();
 
-        editorInstance.askAgent(promptInput.input.value);
-        promptInput.input.value = "";
+        const prompt = promptInput.input.value;
+
+        if(!prompt) {
+            return
+        }
+        
+        editorInstance.promptAgent(prompt, true)
+        promptInput.input.value = ""
+        
     }
     
     return form;

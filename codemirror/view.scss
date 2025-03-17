@@ -1,11 +1,11 @@
-@use "./node_modules/@fullstacked/ui/values/colors.scss" as c;
+@use "../node_modules/@fullstacked/ui/values/colors.scss" as c;
 
 .cm-editor,
 .cm-gutters {
     background-color: c.$dark !important;
 }
 
-.cm-activeLine,
-.cm-activeLineGutter {
-    background-color: transparent !important;
-}
+// .cm-activeLine,
+// .cm-activeLineGutter {
+//     background-color: transparent !important;
+// }
