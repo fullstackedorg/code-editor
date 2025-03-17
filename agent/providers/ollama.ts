@@ -13,23 +13,30 @@ export type OllamaConfiguration = {
 
 let client: ollama.Ollama = null;
 
+function createClient(config: Partial<OllamaConfiguration>) {
+    const opts: ollama.Config = {
+        host: config.host,
+        fetch: core_fetch2,
+        headers: config.extraHeaders || {},
+    };
+    return new OllamaClient(opts);
+}
+
 export const Ollama: AgentProvider = {
+    name: "Ollama",
     configure(config: OllamaConfiguration) {
-        const opts: ollama.Config = {
-            host: config.host,
-            fetch: core_fetch2,
-            headers: config.extraHeaders || {},
-        };
-        client = new OllamaClient(opts);
+        client = createClient(config);
     },
-    async test() {
-        if (!client) return false;
+    async test(config?: Partial<OllamaConfiguration>) {
+        let testClient = config ? createClient(config) : client;
+
         let response: ollama.ListResponse;
         try {
-            response = await client.ps();
+            response = await testClient.ps();
         } catch (e) {
             return false;
         }
+
         return !!response?.models;
     },
     form() {
@@ -38,7 +45,7 @@ export const Ollama: AgentProvider = {
         const hostInput = InputText({
             label: "Host",
         });
-        hostInput.input.innerHTML = "http://localhost:11434";
+        hostInput.input.value = "http://localhost:11434";
 
         form.append(hostInput.container);
 

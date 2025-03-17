@@ -1,58 +1,71 @@
-import { Button, InputText, Loader, Message } from "@fullstacked/ui";
-import { initOllama } from "./ollama";
+import { Button } from "@fullstacked/ui";
+import { AgentConfiguration, AgentProvider, providers } from "./providers";
 
-export function configureForm(
-    didConnect: (endpoint: string) => void,
-    defaultValue = "http://localhost:11434",
-) {
-    const form = document.createElement("form");
-    form.classList.add("agent-configure");
+export function createAgentConfigure() {
+    const container = document.createElement("div");
 
-    form.innerHTML = "<h3>Connect to Ollama</h3>";
-
-    const endpointInput = InputText({
-        label: "Endpoint",
-    });
-    endpointInput.input.value = defaultValue;
-
-    const connectButton = Button({
-        text: "Connect",
+    const select = document.createElement("select");
+    const options = providers.map(({ name }, i) => {
+        const option = document.createElement("option");
+        option.value = i.toString();
+        option.innerText = name;
+        return option;
     });
 
-    form.append(endpointInput.container, connectButton);
+    select.append(...options);
 
-    let message: ReturnType<typeof Message> = null;
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        message?.remove();
-        if (endpointInput.input.value === "") {
-            return;
-        }
+    container.append(select);
 
-        connectButton.disabled = true;
+    let selectedProvider: AgentProvider;
+    let providerForm: HTMLFormElement;
 
-        const loader = Loader();
-        form.append(loader);
-        const loaderText = document.createElement("div");
-        loaderText.className = "loader-text";
-        loaderText.innerText = "Testing Connection...";
-        form.append(loaderText);
-
-        if (await initOllama(endpointInput.input.value)) {
-            didConnect(endpointInput.input.value);
+    const setProviderForm = () => {
+        const indexOf = parseInt(select.value);
+        selectedProvider = providers.at(indexOf);
+        const f = selectedProvider.form();
+        if (providerForm) {
+            providerForm.replaceWith(f);
         } else {
-            message = Message({
-                style: "warning",
-                text: "Failed to connect",
-            });
-            form.append(message);
+            container.append(f);
         }
+        providerForm = f;
+    };
+    select.onchange = setProviderForm;
+    setProviderForm();
 
-        loader.remove();
-        loaderText.remove();
+    const testButton = Button({
+        text: "Test",
+        style: "text",
+    });
+    testButton.onclick = async () => {
+        testButton.disabled = true;
+        saveButton.disabled = true;
 
-        connectButton.disabled = false;
+        const config = formToObj(providerForm);
+        selectedProvider.test(config);
+
+        testButton.disabled = false;
+        saveButton.disabled = false;
     };
 
-    return form;
+    const saveButton = Button({
+        text: "Save",
+    });
+
+    const buttons = document.createElement("div");
+    buttons.append(testButton, saveButton);
+    container.append(buttons);
+
+    return container;
+}
+
+function formToObj(form: HTMLFormElement): Partial<AgentConfiguration> {
+    let obj = {};
+    const formData = new FormData(form);
+
+    for (const [key, value] of formData.entries()) {
+        obj[key] = value;
+    }
+
+    return obj;
 }

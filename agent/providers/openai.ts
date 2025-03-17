@@ -7,6 +7,7 @@ export type OpenAIConfiguration = {
 };
 
 export const OpenAI: AgentProvider = {
+    name: "OpenAI",
     form() {
         const form = document.createElement("form");
 
@@ -14,7 +15,7 @@ export const OpenAI: AgentProvider = {
             label: "Api Key",
         });
 
-        form.append(apiKeyInput.input);
+        form.append(apiKeyInput.container);
 
         return form;
     },
