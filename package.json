@@ -14,6 +14,7 @@
         "@fullstacked/ui": "github.com:fullstackedorg/ui#ede6fa9103792d018fa418240bb928c0271f5bdb",
         "codemirror": "^6.0.1",
         "codemirror-extension-inline-suggestion": "^0.0.3",
+        "ollama": "^0.5.14",
         "openai": "^4.87.3",
         "streaming-markdown": "^0.1.0"
     },
