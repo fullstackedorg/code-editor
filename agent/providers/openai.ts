@@ -53,15 +53,13 @@ export const OpenAI: AgentProvider = {
 
         return form;
     },
-    async chat(text: string) {
+    async chat(messages) {
         const response = await client.chat.completions.create({
             model: "gpt-4o",
-            messages: [
-                {
-                    role: "user",
-                    content: text,
-                },
-            ],
+            messages: messages.map((m) => ({
+                role: m.role === "agent" ? "assistant" : m.role,
+                content: m.content,
+            })),
             stream: true,
         });
 
@@ -78,9 +76,10 @@ export const OpenAI: AgentProvider = {
 
                         return {
                             done,
-                            value: (
-                                value as openai.Chat.Completions.ChatCompletionChunk
-                            )?.choices?.at(0)?.delta?.content || "",
+                            value:
+                                (
+                                    value as openai.Chat.Completions.ChatCompletionChunk
+                                )?.choices?.at(0)?.delta?.content || "",
                         };
                     },
                 };

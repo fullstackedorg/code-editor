@@ -1,4 +1,4 @@
-import { Button, InputText } from "@fullstacked/ui";
+import { Button } from "@fullstacked/ui";
 import * as smd from "streaming-markdown";
 import {
     languageHighlightExtension,
@@ -7,39 +7,76 @@ import {
 import { EditorState } from "@codemirror/state";
 import { createCmView } from "../codemirror/view";
 
+export type AgentConversationMessages = {
+    role: "user" | "agent";
+    content: string;
+}[];
+
 export function createConversation() {
     const container = document.createElement("div");
     container.classList.add("agent-conversation");
+
+    let messages: AgentConversationMessages = [];
+
+    const clear = () => {
+        Array.from(container.children).forEach((c) => c.remove());
+        messages = [];
+    };
 
     const addUserMessage = (prompt: string) => {
         const userMessage = document.createElement("div");
         userMessage.classList.add("message-box", "user");
         userMessage.innerText = prompt;
         container.append(userMessage);
+        messages.push({
+            role: "user",
+            content: prompt,
+        });
     };
 
     const addAgentMessage = async (
         streamOrString: string | AsyncIterable<string>,
+        providerName?: string,
     ) => {
         const agentMessage = document.createElement("div");
         agentMessage.classList.add("message-box", "agent");
         container.append(agentMessage);
 
+        // for error messages
         if (typeof streamOrString === "string") {
             agentMessage.innerText = streamOrString;
-        } else {
-            const renderer = createMarkdownStreamRenderer(agentMessage);
-            for await (const chunk of streamOrString) {
-                renderer.write(chunk);
-            }
-            renderer.end();
+            return;
         }
+
+        if (providerName) {
+            const providerNameContainer = document.createElement("div");
+            providerNameContainer.innerText = providerName;
+            agentMessage.append(providerNameContainer);
+        }
+
+        const agentMessageText = {
+            role: "agent",
+            content: "",
+        } as AgentConversationMessages[0];
+
+        messages.push(agentMessageText);
+
+        const renderer = createMarkdownStreamRenderer(agentMessage);
+        for await (const chunk of streamOrString) {
+            agentMessageText.content += chunk;
+            renderer.write(chunk);
+        }
+        renderer.end();
     };
 
     return {
         container,
         addUserMessage,
         addAgentMessage,
+        get messages() {
+            return messages;
+        },
+        clear,
     };
 }
 

@@ -1,3 +1,4 @@
+import { AgentConversationMessages } from "../conversation";
 import { Claude, ClaudeConfiguration } from "./claude";
 import { Ollama, OllamaConfiguration } from "./ollama";
 import { OpenAI, OpenAIConfiguration } from "./openai";
@@ -15,6 +16,6 @@ export interface AgentProvider {
     configure(config: Partial<AgentConfiguration>): void;
     test(config?: Partial<AgentConfiguration>): Promise<boolean>;
     form(): HTMLFormElement;
-    chat(message: string): Promise<AsyncIterable<string>>;
+    chat(messages: AgentConversationMessages): Promise<AsyncIterable<string>>;
     completion(prompt: string, suffix: string): void;
 }

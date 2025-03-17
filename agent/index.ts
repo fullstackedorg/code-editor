@@ -15,8 +15,8 @@ export function createAgent(editorInstance: Editor) {
     let prompt: ReturnType<typeof createPrompt>;
 
     const didConfigureProvider = (provider: AgentProvider) => {
-        console.log(provider.name)
         currentProvider = provider;
+
         const indexOf = agentProviders.findIndex(
             (p) => p.name === provider.name,
         );
@@ -95,9 +95,19 @@ export function createAgent(editorInstance: Editor) {
                     conversation?.addAgentMessage("No provider configured");
                 } else {
                     currentProvider
-                        .chat(text)
+                        .chat(
+                            conversation?.messages || [
+                                {
+                                    role: "user",
+                                    content: text,
+                                },
+                            ],
+                        )
                         .then((stream) =>
-                            conversation?.addAgentMessage(stream),
+                            conversation?.addAgentMessage(
+                                stream,
+                                currentProvider.name,
+                            ),
                         );
                 }
             } else {

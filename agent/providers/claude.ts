@@ -53,12 +53,15 @@ export const Claude: AgentProvider = {
 
         return form;
     },
-    async chat(text: string) {
+    async chat(messages) {
         const response = await client.messages.create({
             model: "claude-3-7-sonnet-20250219",
-            max_tokens: 1024,
-            messages: [{ role: "user", content: text }],
-            stream: true
+            max_tokens: 8192,
+            messages: messages.map((m) => ({
+                role: m.role === "agent" ? "assistant" : m.role,
+                content: m.content,
+            })),
+            stream: true,
         });
 
         const iterator = response[Symbol.asyncIterator]();
@@ -72,9 +75,10 @@ export const Claude: AgentProvider = {
                             return { done, value: "" };
                         }
 
+                        const text = value?.delta?.text || "";
                         return {
                             done,
-                            value: value?.delta?.text || "",
+                            value: text,
                         };
                     },
                 };

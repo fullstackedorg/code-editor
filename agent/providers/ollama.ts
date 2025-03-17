@@ -62,10 +62,13 @@ export const Ollama: AgentProvider = {
 
         return form;
     },
-    async chat(message) {
+    async chat(messages) {
         const response = await client.chat({
             model: "llama3.1:8b",
-            messages: [{ role: "user", content: message }],
+            messages: messages.map((m) => ({
+                role: m.role === "agent" ? "assistant" : m.role,
+                content: m.content,
+            })),
             stream: true,
         });
 
