@@ -12,7 +12,7 @@
         "@codemirror/lang-sass": "^6.0.2",
         "@codemirror/theme-one-dark": "^6.1.2",
         "@codemirror/view": "^6.36.4",
-        "@fullstacked/ui": "github.com:fullstackedorg/ui#ede6fa9103792d018fa418240bb928c0271f5bdb",
+        "@fullstacked/ui": "github.com:fullstackedorg/ui#b1959309577f3b09ab0ed1ed8248b878c10c2879",
         "codemirror": "^6.0.1",
         "codemirror-extension-inline-suggestion": "^0.0.3",
         "ollama": "^0.5.14",

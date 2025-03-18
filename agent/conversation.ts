@@ -6,13 +6,14 @@ import {
 } from "../codemirror/languages";
 import { EditorState } from "@codemirror/state";
 import { createCmView } from "../codemirror/view";
+import Editor from "../editor";
 
 export type AgentConversationMessages = {
     role: "user" | "agent";
     content: string;
 }[];
 
-export function createConversation() {
+export function createConversation(editorInstance: Editor) {
     const container = document.createElement("div");
     container.classList.add("agent-conversation");
 
@@ -61,7 +62,10 @@ export function createConversation() {
 
         messages.push(agentMessageText);
 
-        const renderer = createMarkdownStreamRenderer(agentMessage);
+        const renderer = createMarkdownStreamRenderer(
+            editorInstance,
+            agentMessage,
+        );
         for await (const chunk of streamOrString) {
             agentMessageText.content += chunk;
             renderer.write(chunk);
@@ -80,7 +84,7 @@ export function createConversation() {
     };
 }
 
-function createMarkdownStreamRenderer(el: HTMLElement) {
+function createMarkdownStreamRenderer(editorInstance: Editor, el: HTMLElement) {
     const renderer = smd.default_renderer(el);
     const defaultAddToken = renderer.add_token;
     renderer.add_token = function (data: any, type: any) {
@@ -90,7 +94,7 @@ function createMarkdownStreamRenderer(el: HTMLElement) {
 
         let parent = data.nodes[data.index];
         const container = document.createElement("div");
-        container.classList.add("cm-container");
+        container.classList.add("cm-container", "read-only");
         parent = parent.appendChild(container);
         const codeView = createCmView({
             container,
@@ -127,21 +131,24 @@ function createMarkdownStreamRenderer(el: HTMLElement) {
         copyToClipButton.onclick = () => {
             copyToClip(codeView.value);
         };
-        const createFileButton = Button({
-            iconRight: "File Add",
-            style: "icon-small",
-        });
-        createFileButton.onclick = async () => {
-            // const text = codeView.value;
-            // const lang = codeView.lang;
-            // const summarized = (await summarize(text)).choices.at(0).message
-            //     .content;
-            // const fileName =
-            //     (summarized.endsWith(".") ? summarized : summarized + ".") +
-            //     languageToFileExtension(lang);
-            // createFile("// " + fileName + "\n" + text, lang);
-        };
-        actions.append(copyToClipButton, createFileButton);
+        actions.append(copyToClipButton);
+
+        if (editorInstance.hasWorkspace()) {
+            const createFileButton = Button({
+                iconRight: "File Add",
+                style: "icon-small",
+            });
+            createFileButton.onclick = async () => {
+                const text = codeView.value;
+                const lang = codeView.lang;
+                // const summarized = (await summarize(text)).choices.at(0).message
+                //     .content;
+                const fileName = "index." + languageToFileExtension(lang);
+                editorInstance.openFile(fileName, text);
+            };
+            actions.append(createFileButton);
+        }
+
         container.append(actions);
 
         data.nodes[++data.index] = codeView;

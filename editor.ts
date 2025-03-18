@@ -28,6 +28,10 @@ export default class Editor extends EventTarget {
         }
         return this.workspace;
     }
+    hasWorkspace() {
+        return !!this.workspace;
+    }
+
     getAgentElement(e: "configure" | "conversation" | "prompt") {
         if (this.agent === undefined) {
             this.agent = createAgent(this);

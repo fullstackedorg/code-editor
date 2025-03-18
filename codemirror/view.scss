@@ -5,7 +5,9 @@
     background-color: c.$dark !important;
 }
 
-// .cm-activeLine,
-// .cm-activeLineGutter {
-//     background-color: transparent !important;
-// }
+.cm-container.read-only {
+    .cm-activeLine,
+    .cm-activeLineGutter {
+        background-color: transparent !important;
+    }
+}

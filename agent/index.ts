@@ -63,7 +63,7 @@ export function createAgent(editorInstance: Editor) {
         },
         get conversation() {
             if (!conversation) {
-                conversation = createConversation();
+                conversation = createConversation(editorInstance);
             }
 
             return conversation.container;

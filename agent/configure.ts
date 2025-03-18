@@ -1,4 +1,4 @@
-import { Button, Message } from "@fullstacked/ui";
+import { Button, InputSelect, Message } from "@fullstacked/ui";
 import { AgentConfiguration, AgentProvider, providers } from "./providers";
 
 export function createConfigure(
@@ -7,22 +7,16 @@ export function createConfigure(
 ) {
     const container = document.createElement("div");
 
-    const select = document.createElement("select");
-    const options = providers.map((p, i) => {
-        const option = document.createElement("option");
-        option.value = i.toString();
-        option.innerText = p.name;
-
-        if(p.name === currentProvider.name) {
-            option.selected = true;
-        }
-        
-        return option;
+    const inputSelect = InputSelect({
+        label: "Agent Provider",
     });
+    const options = providers.map((p) => ({
+        name: p.name,
+    }));
 
-    select.append(...options);
-
-    container.append(select);
+    inputSelect.options.add(...options);
+    inputSelect.select.value = currentProvider?.name;
+    container.append(inputSelect.container);
 
     let selectedProvider: AgentProvider;
     let providerForm: HTMLFormElement;
@@ -36,8 +30,8 @@ export function createConfigure(
 
     const setProviderForm = () => {
         resetMessage();
-        const indexOf = parseInt(select.value);
-        selectedProvider = providers.at(indexOf);
+        const selected = inputSelect.select.value;
+        selectedProvider = providers.find((p) => p.name === selected);
         const f = selectedProvider.form();
         if (providerForm) {
             providerForm.replaceWith(f);
@@ -49,7 +43,7 @@ export function createConfigure(
             e.preventDefault();
         };
     };
-    select.onchange = setProviderForm;
+    inputSelect.select.onchange = setProviderForm;
     setProviderForm();
 
     const testButton = Button({
@@ -63,7 +57,7 @@ export function createConfigure(
         saveButton.disabled = true;
 
         const config = formToObj(providerForm);
-        console.log(selectedProvider)
+        console.log(selectedProvider);
         const success = await selectedProvider.test(config);
 
         const m = success
