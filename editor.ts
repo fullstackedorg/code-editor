@@ -15,18 +15,18 @@ type AgentConfigurationUpdate = Event & {
 export default class Editor extends EventTarget {
     private workspace: ReturnType<typeof createWorkspace>;
     private agent: ReturnType<typeof createAgent>;
-    defaultOpts: EditorOpts;
+    opts: EditorOpts;
 
     constructor(opts: EditorOpts) {
         super();
-        this.defaultOpts = opts;
+        this.opts = opts;
     }
 
     get workspaceElement() {
         if (this.workspace === undefined) {
             this.workspace = createWorkspace(this);
         }
-        return this.workspace;
+        return this.workspace.container;
     }
     hasWorkspace() {
         return !!this.workspace;
@@ -64,8 +64,14 @@ export default class Editor extends EventTarget {
         this.agent.ask(text, chat);
     }
 
-    openFile(filename: string, contents: string): void {}
-    closeFile(filename: string): void {}
+    openFile(filename: string, contents: string): void {
+        this.workspace?.files.add(filename, contents);
+    }
+    closeFile(filename: string): void {
+        this.workspace?.files.remove(filename);
+    }
     getFileContents(filename: string): string {}
-    goTo(filename: string, line: number, col: number): void {}
+    goTo(filename: string, line: number, col: number): void {
+        
+    }
 }

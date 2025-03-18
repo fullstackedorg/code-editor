@@ -93,11 +93,7 @@ function createMarkdownStreamRenderer(editorInstance: Editor, el: HTMLElement) {
         }
 
         let parent = data.nodes[data.index];
-        const container = document.createElement("div");
-        container.classList.add("cm-container", "read-only");
-        parent = parent.appendChild(container);
         const codeView = createCmView({
-            container,
             contents: "",
             extensions: [EditorState.readOnly.of(true)],
         }) as ReturnType<typeof createCmView> & {
@@ -114,13 +110,15 @@ function createMarkdownStreamRenderer(editorInstance: Editor, el: HTMLElement) {
             }
         };
         codeView.appendChild = (text) => {
-            codeView.view.dispatch({
+            codeView.editorView.dispatch({
                 changes: {
-                    from: codeView.view.state.doc.length,
+                    from: codeView.editorView.state.doc.length,
                     insert: text.wholeText,
                 },
             });
         };
+        codeView.container.classList.add("read-only");
+        parent = parent.appendChild(codeView.container);
 
         const actions = document.createElement("div");
         actions.classList.add("actions");
@@ -149,7 +147,7 @@ function createMarkdownStreamRenderer(editorInstance: Editor, el: HTMLElement) {
             actions.append(createFileButton);
         }
 
-        container.append(actions);
+        codeView.container.append(actions);
 
         data.nodes[++data.index] = codeView;
     };

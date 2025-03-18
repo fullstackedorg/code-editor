@@ -3,27 +3,30 @@ import { Extension, StateEffect } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 
 type CmViewOpts = {
-    container: HTMLElement;
     contents: string;
     extensions?: Extension[];
 };
 
 export function createCmView(opts: CmViewOpts) {
-    const view = new EditorView({
+    const container = document.createElement("div");
+    container.classList.add("cm-container");
+
+    const editorView = new EditorView({
+        parent: container,
         doc: opts.contents,
-        parent: opts.container,
         extensions: [oneDark, basicSetup, ...(opts.extensions || [])],
     });
 
     return {
-        view,
+        container,
+        editorView,
         addExtension(extension: Extension) {
-            view.dispatch({
+            editorView.dispatch({
                 effects: StateEffect.appendConfig.of([extension]),
             });
         },
         get value() {
-            return view.state.doc.toString();
+            return editorView.state.doc.toString();
         },
     };
 }

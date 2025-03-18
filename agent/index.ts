@@ -27,7 +27,7 @@ export function createAgent(editorInstance: Editor) {
         editorInstance.updatedAgentConfiguration();
     };
 
-    const configurations = editorInstance.defaultOpts
+    const configurations = editorInstance.opts
         ?.agentConfigurations as (AgentConfiguration & {
         current: boolean;
     })[];
