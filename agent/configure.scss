@@ -1,0 +1,11 @@
+@use "../node_modules/@fullstacked/ui/values/spacing.scss" as s;
+
+.agent-configure-buttons {
+    display: flex;
+    align-items: center;
+    > div {
+        &:first-child {
+            flex: 1;
+        }
+    }
+}

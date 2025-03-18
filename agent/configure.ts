@@ -31,12 +31,14 @@ export function createConfigure(
     const setProviderForm = () => {
         resetMessage();
         const selected = inputSelect.select.value;
+        if (!selected) return;
         selectedProvider = providers.find((p) => p.name === selected);
         const f = selectedProvider.form();
         if (providerForm) {
             providerForm.replaceWith(f);
         } else {
             container.append(f);
+            addButtonOnce();
         }
         providerForm = f;
         providerForm.onsubmit = (e) => {
@@ -44,60 +46,68 @@ export function createConfigure(
         };
     };
     inputSelect.select.onchange = setProviderForm;
-    setProviderForm();
 
-    const testButton = Button({
-        text: "Test",
-        style: "text",
-    });
+    let addedButton = false;
+    const addButtonOnce = () => {
+        if (addedButton) return;
+        addedButton = true;
 
-    testButton.onclick = async () => {
-        resetMessage();
-        testButton.disabled = true;
-        saveButton.disabled = true;
-
-        const config = formToObj(providerForm);
-        console.log(selectedProvider);
-        const success = await selectedProvider.test(config);
-
-        const m = success
-            ? Message({
-                  text: "Connection success",
-              })
-            : Message({
-                  text: "Connection failed",
-                  style: "warning",
-              });
-        message.replaceWith(m);
-        message = m;
-
-        testButton.disabled = false;
-        saveButton.disabled = false;
-    };
-
-    const saveButton = Button({
-        text: "Save",
-    });
-    saveButton.onclick = async () => {
-        testButton.disabled = true;
-        saveButton.disabled = true;
-
-        const config = formToObj(providerForm);
-        selectedProvider.configure(config);
-        const m = Message({
-            text: "Configuration saved",
+        const testButton = Button({
+            text: "Test",
+            style: "text",
         });
-        message.replaceWith(m);
-        message = m;
-        configuredProvider(selectedProvider);
 
-        testButton.disabled = false;
-        saveButton.disabled = false;
+        testButton.onclick = async () => {
+            resetMessage();
+            testButton.disabled = true;
+            saveButton.disabled = true;
+
+            const config = formToObj(providerForm);
+            console.log(selectedProvider);
+            const success = await selectedProvider.test(config);
+
+            const m = success
+                ? Message({
+                      text: "Connection success",
+                  })
+                : Message({
+                      text: "Connection failed",
+                      style: "warning",
+                  });
+            message.replaceWith(m);
+            message = m;
+
+            testButton.disabled = false;
+            saveButton.disabled = false;
+        };
+
+        const saveButton = Button({
+            text: "Save",
+        });
+        saveButton.onclick = async () => {
+            testButton.disabled = true;
+            saveButton.disabled = true;
+
+            const config = formToObj(providerForm);
+            selectedProvider.configure(config);
+            const m = Message({
+                text: "Configuration saved",
+            });
+            message.replaceWith(m);
+            message = m;
+            configuredProvider(selectedProvider);
+
+            testButton.disabled = false;
+            saveButton.disabled = false;
+        };
+
+        const buttons = document.createElement("div");
+        buttons.classList.add("agent-configure-buttons")
+        buttons.append(message, testButton, saveButton);
+        container.append(buttons);
     };
 
-    const buttons = document.createElement("div");
-    buttons.append(message, testButton, saveButton);
-    container.append(buttons);
+    setProviderForm();
 
     return container;
 }
