@@ -1,11 +1,16 @@
 import { EditorView, basicSetup } from "codemirror";
+import { keymap } from "@codemirror/view";
 import { EditorSelection, Extension, StateEffect } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
+import { indentWithTab } from "@codemirror/commands";
+import { indentUnit } from "@codemirror/language";
 
 type CmViewOpts = {
     contents: string;
     extensions?: Extension[];
 };
+
+const tabWidth = 4;
 
 export function createCmView(opts: CmViewOpts) {
     const container = document.createElement("div");
@@ -14,7 +19,13 @@ export function createCmView(opts: CmViewOpts) {
     const editorView = new EditorView({
         parent: container,
         doc: opts.contents,
-        extensions: [oneDark, basicSetup, ...(opts.extensions || [])],
+        extensions: [
+            oneDark,
+            basicSetup,
+            keymap.of([indentWithTab]),
+            indentUnit.of(new Array(tabWidth + 1).join(" ")),
+            ...(opts.extensions || []),
+        ],
     });
 
     return {

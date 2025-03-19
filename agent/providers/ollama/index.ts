@@ -89,6 +89,9 @@ export class Ollama extends AgentProvider<OllamaConfiguration, ollama.Ollama> {
                 this.defaultModels.completion,
             prompt,
             suffix,
+            options: {
+                stop: ["```"]
+            },
             stream: false,
         });
         return response.response;
