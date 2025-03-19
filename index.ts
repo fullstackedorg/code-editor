@@ -1,7 +1,7 @@
 import fs from "fs";
 import Editor from "./editor";
-import { AgentConfiguration } from "./agent/providers";
 import eruda from "eruda";
+import { AgentConfiguration } from "./agent/providers/agentProvider";
 eruda.init();
 
 if (!(await fs.exists("data"))) {
@@ -17,10 +17,12 @@ if (await fs.exists(agentConfigsFile)) {
 }
 
 const codeEditor = new Editor({
+    agentUses: ["chat", "completion"],
     agentConfigurations,
 });
 
 codeEditor.addEventListener("agent-configuration-update", (e) => {
+    console.log(e.agentConfigurations);
     fs.writeFile(agentConfigsFile, JSON.stringify(e.agentConfigurations));
 });
 

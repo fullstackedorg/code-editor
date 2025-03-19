@@ -1,70 +1,59 @@
 import { InputText } from "@fullstacked/ui";
-import { AgentProvider } from ".";
 import { core_fetch2 } from "fetch";
 // @ts-ignore
 import { Ollama as OllamaClient } from "ollama/browser";
-import * as ollama from "ollama";
+import type * as ollama from "ollama";
+import { AgentProvider } from "../agentProvider";
+import { OllamaConfiguration, ollamaId } from "./config";
+import { AgentConversationMessages } from "../../conversation";
 
-export type OllamaConfiguration = {
-    type: "ollama";
-    host: string;
-    extraHeaders?: Record<string, string>;
-};
-
-let clientConfig: OllamaConfiguration = null;
-let client: ollama.Ollama = null;
-
-function createClient(config: Partial<OllamaConfiguration>): ollama.Ollama {
-    const opts: ollama.Config = {
-        host: config.host,
-        fetch: core_fetch2,
-        headers: config.extraHeaders || {},
+export class Ollama extends AgentProvider<OllamaConfiguration, ollama.Ollama> {
+    id = ollamaId;
+    name = "Ollama";
+    defaultModels = {
+        chat: "llama3.1:8b",
+        completion: "qwen2.5-coder:1.5b",
     };
-    return new OllamaClient(opts);
-}
 
-export const Ollama: AgentProvider = {
-    name: "Ollama",
-    configure(config: OllamaConfiguration) {
-        clientConfig = config;
-        client = createClient(config);
-    },
-    getConfig: () => {
-        if (!client) return null;
-        return {
-            type: "ollama",
-            host: clientConfig.host,
-            extraHeaders: clientConfig.extraHeaders || {},
+    createClient = (config: Partial<OllamaConfiguration>) => {
+        const opts: ollama.Config = {
+            host: config.host,
+            fetch: core_fetch2,
+            headers: config.extraHeaders || {},
         };
-    },
-    async test(config?: Partial<OllamaConfiguration>) {
-        let testClient = config ? createClient(config) : client;
+        return new OllamaClient(opts);
+    };
+
+    async models(config?: Partial<OllamaConfiguration>) {
+        let testClient = config ? this.createClient(config) : this.client;
 
         let response: ollama.ListResponse;
         try {
-            response = await testClient.ps();
+            response = await testClient.list();
         } catch (e) {
-            return false;
+            return null;
         }
 
-        return !!response?.models;
-    },
-    form() {
-        const form = document.createElement("form");
+        if (!response?.models) {
+            return null;
+        }
 
+        return response.models.map(({ name }) => name);
+    }
+
+    formSpecifics() {
         const hostInput = InputText({
             label: "Host",
         });
         hostInput.input.name = "host";
-        hostInput.input.value = clientConfig?.host || "http://localhost:11434";
+        hostInput.input.value = this.config?.host || "http://localhost:11434";
 
-        form.append(hostInput.container);
+        return [hostInput.container];
+    }
 
-        return form;
-    },
-    async chat(messages) {
-        const response = await client.chat({
-            model: "llama3.1:8b",
+    async chat(messages: AgentConversationMessages) {
+        const response = await this.client.chat({
+            model: this.config.models?.chat || this.defaultModels.chat,
             messages: messages.map((m) => ({
                 role: m.role === "agent" ? "assistant" : m.role,
                 content: m.content,
@@ -92,16 +81,19 @@ export const Ollama: AgentProvider = {
                 };
             },
         };
-    },
-    completion(prompt, suffix) {
-        return client.generate({
-            model: "qwen2.5-coder:1.5b",
+    }
+    async completion(prompt: string, suffix: string) {
+        const response = await this.client.generate({
+            model:
+                this.config?.models?.completion ||
+                this.defaultModels.completion,
             prompt,
             suffix,
             stream: false,
         });
-    },
-};
+        return response.response;
+    }
+}
 
 // export async function summarize(text: string) {
 //     return openai.chat.completions.create({

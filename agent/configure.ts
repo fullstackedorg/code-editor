@@ -1,11 +1,57 @@
 import { Button, InputSelect, Message } from "@fullstacked/ui";
-import { AgentConfiguration, AgentProvider, providers } from "./providers";
+import { AGENT_USE, AgentProviderGeneric } from "./providers/agentProvider";
+import { providers } from "./providers";
 
 export function createConfigure(
-    currentProvider: AgentProvider,
-    configuredProvider: (provider: AgentProvider) => void,
+    uses: AGENT_USE[],
+    didConfigureProvider: (provider: AgentProviderGeneric) => void,
+    getCurrentProviders: () => { [use: string]: AgentProviderGeneric },
+    didSelectModel: (provider: AgentProviderGeneric, use: AGENT_USE) => void,
 ) {
     const container = document.createElement("div");
+    container.classList.add("agent-configure");
+
+    let modelUseForms: HTMLFormElement[] = [];
+    const renderModelSelectionForms = () => {
+        const currentProviders = getCurrentProviders();
+        const availableProviders = providers.filter((p) => !!p.client);
+        uses.forEach((u, i) => {
+            const f = availableProviders.find((p) => !!p[u])
+                ? renderModelSelectionForm(u, currentProviders[u], (p) =>
+                      didSelectModel(p, u),
+                  )
+                : document.createElement("form");
+
+            if (modelUseForms[i]) {
+                modelUseForms[i].replaceWith(f);
+                modelUseForms[i] = f;
+            } else {
+                modelUseForms.push(f);
+            }
+        });
+    };
+
+    container.append(
+        configureAgentProviders((p) => {
+            didConfigureProvider(p);
+            renderModelSelectionForms();
+        }),
+    );
+
+    renderModelSelectionForms();
+    container.append(...(modelUseForms || []));
+
+    return container;
+}
+
+function configureAgentProviders(
+    didConfigureProvider: (provider: AgentProviderGeneric) => void,
+) {
+    const container = document.createElement("div");
+
+    container.innerHTML = `<h3>Configure agent providers</h3>`;
+
+    let selectedProvider: AgentProviderGeneric = null;
 
     const inputSelect = InputSelect({
         label: "Agent Provider",
@@ -15,58 +61,50 @@ export function createConfigure(
     }));
 
     inputSelect.options.add(...options);
-    inputSelect.select.value = currentProvider?.name;
-    container.append(inputSelect.container);
-
-    let selectedProvider: AgentProvider;
-    let providerForm: HTMLFormElement;
-
-    let message: ReturnType<typeof Message> = document.createElement("div");
-    const resetMessage = () => {
-        const m = document.createElement("div");
-        message.replaceWith(m);
-        message = m;
+    inputSelect.select.onchange = () => {
+        selectedProvider = providers.find(
+            (p) => p.name === inputSelect.select.value,
+        );
+        renderConnectionForm();
     };
 
-    const setProviderForm = () => {
-        resetMessage();
-        const selected = inputSelect.select.value;
-        if (!selected) return;
-        selectedProvider = providers.find((p) => p.name === selected);
-        const f = selectedProvider.form();
-        if (providerForm) {
-            providerForm.replaceWith(f);
-        } else {
-            container.append(f);
-            addButtonOnce();
-        }
-        providerForm = f;
-        providerForm.onsubmit = (e) => {
-            e.preventDefault();
-        };
-    };
-    inputSelect.select.onchange = setProviderForm;
+    let connectionForm = document.createElement("form");
+    container.append(inputSelect.container, connectionForm);
 
-    let addedButton = false;
-    const addButtonOnce = () => {
-        if (addedButton) return;
-        addedButton = true;
+    const renderConnectionForm = () => {
+        if (!selectedProvider) return;
 
+        const providerForm = selectedProvider.form();
+
+        connectionForm.replaceWith(providerForm.form);
+        connectionForm = providerForm.form;
+
+        const connectionActionRow = document.createElement("div");
+        connectionActionRow.classList.add("agent-configure-action-row");
+        let connectionStatus = document.createElement("div");
         const testButton = Button({
             text: "Test",
             style: "text",
         });
+        const saveButton = Button({
+            text: "Save",
+        });
+
+        connectionActionRow.append(connectionStatus, testButton, saveButton);
+        connectionForm.append(connectionActionRow);
 
         testButton.onclick = async () => {
-            resetMessage();
+            connectionStatus.innerHTML = "";
             testButton.disabled = true;
             saveButton.disabled = true;
 
-            const config = formToObj(providerForm);
-            console.log(selectedProvider);
-            const success = await selectedProvider.test(config);
+            const config = providerForm.value;
+            const models = await selectedProvider.models(config);
 
-            const m = success
+            testButton.disabled = false;
+            saveButton.disabled = false;
+
+            const status = models
                 ? Message({
                       text: "Connection success",
                   })
@@ -74,51 +112,92 @@ export function createConfigure(
                       text: "Connection failed",
                       style: "warning",
                   });
-            message.replaceWith(m);
-            message = m;
-
-            testButton.disabled = false;
-            saveButton.disabled = false;
+            connectionStatus.replaceWith(status);
+            connectionStatus = status;
         };
 
-        const saveButton = Button({
-            text: "Save",
-        });
-        saveButton.onclick = async () => {
-            testButton.disabled = true;
-            saveButton.disabled = true;
-
-            const config = formToObj(providerForm);
-            selectedProvider.configure(config);
-            const m = Message({
+        saveButton.onclick = () => {
+            connectionStatus.innerHTML = "";
+            selectedProvider.configure(providerForm.value);
+            didConfigureProvider(selectedProvider);
+            const status = Message({
                 text: "Configuration saved",
             });
-            message.replaceWith(m);
-            message = m;
-            configuredProvider(selectedProvider);
-
-            testButton.disabled = false;
-            saveButton.disabled = false;
+            connectionStatus.replaceWith(status);
+            connectionStatus = status;
         };
-
-        const buttons = document.createElement("div");
-        buttons.classList.add("agent-configure-buttons")
-        buttons.append(message, testButton, saveButton);
-        container.append(buttons);
     };
-
-    setProviderForm();
 
     return container;
 }
 
-function formToObj(form: HTMLFormElement): Partial<AgentConfiguration> {
-    let obj = {};
-    const formData = new FormData(form);
+function renderModelSelectionForm(
+    use: AGENT_USE,
+    currentProvider: AgentProviderGeneric,
+    didSelectModel: (provider: AgentProviderGeneric) => void,
+) {
+    const form = document.createElement("form");
 
-    for (const [key, value] of formData.entries()) {
-        obj[key] = value;
-    }
+    form.innerHTML = `<h3>Model for ${use}</h3>`;
 
-    return obj;
+    const providerSelect = InputSelect({
+        label: "Agent Provider",
+    });
+
+    form.append(providerSelect.container);
+
+    const optionsProviders = providers.filter((p) => p.client && !!p[use]);
+    providerSelect.options.add(
+        ...optionsProviders.map(({ name }) => ({ name })),
+    );
+    providerSelect.options.add({ name: "None", id: null });
+    providerSelect.select.value = currentProvider?.name;
+
+    let modelSelection = document.createElement("div");
+    form.append(modelSelection);
+
+    providerSelect.select.onchange = () => {
+        modelSelection.innerHTML = "";
+        const provider = optionsProviders.find(
+            ({ name }) => name === providerSelect.select.value,
+        );
+
+        if (!provider) {
+            didSelectModel(null);
+            return;
+        }
+
+        const modelSelect = InputSelect({
+            label: "Model",
+        });
+        modelSelect.select.onchange = () => {
+            provider.setModel(use, modelSelect.select.value);
+            didSelectModel(provider);
+        };
+
+        modelSelection.append(modelSelect.container);
+
+        provider.models().then((models) => {
+            if (models) {
+                const providerUseModel =
+                    provider.config?.models?.[use] ||
+                    provider.defaultModels[use];
+
+                const modelsOptions = models.map((name) => {
+                    return {
+                        name,
+                        selected: providerUseModel === name,
+                    };
+                });
+
+                modelSelect.options.add(...modelsOptions);
+                modelSelect.select.onchange();
+            } else {
+                modelSelection.innerHTML = `Failed to get models for <b>${provider.name}</b>. Verify provider configuration.`;
+            }
+        });
+    };
+    providerSelect.select.onchange();
+
+    return form;
 }

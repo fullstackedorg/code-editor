@@ -1,6 +1,15 @@
 @use "../node_modules/@fullstacked/ui/values/spacing.scss" as s;
 
-.agent-configure-buttons {
+.agent-configure {
+    form {
+        margin: 0;
+    }
+    .input-text,
+    .input-select {
+        margin-bottom: s.$small;
+    }
+}
+.agent-configure-action-row {
     display: flex;
     align-items: center;
     > div {

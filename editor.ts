@@ -1,15 +1,16 @@
 import { Extension } from "@codemirror/state";
-import { AgentConfiguration } from "./agent/providers";
 import { createWorkspace } from "./workspace";
 import { createAgent } from "./agent";
+import { AGENT_USE, AgentConfigWithUses } from "./agent/providers/agentProvider";
 
 type EditorOpts = {
-    agentConfigurations?: AgentConfiguration[];
+    agentUses?: AGENT_USE[],
+    agentConfigurations?: AgentConfigWithUses[];
     codemirrorExtraExtensions?(filename: string): Extension[];
 };
 
 type AgentConfigurationUpdate = Event & {
-    agentConfigurations: AgentConfiguration[];
+    agentConfigurations: AgentConfigWithUses[];
 };
 
 export default class Editor extends EventTarget {
@@ -56,12 +57,21 @@ export default class Editor extends EventTarget {
         this.dispatchEvent(e);
     }
 
-    promptAgent(text: string, chat: boolean): void {
+    agentAsk(text: string, chat: true): void;
+    // agentAsk(text: string, chat: false): Promise<AsyncIterator>;
+    agentAsk(text: string, chat: boolean): void {
         if (!this.agent) {
             this.agent = createAgent(this);
         }
 
         this.agent.ask(text, chat);
+    }
+    agentComplete(prompt: string, suffix: string): Promise<string> {
+        if (!this.agent) {
+            this.agent = createAgent(this);
+        }
+
+        return this.agent.complete(prompt, suffix);
     }
 
     openFile(filename: string, contents: string): void {
@@ -71,7 +81,5 @@ export default class Editor extends EventTarget {
         this.workspace?.files.remove(filename);
     }
     getFileContents(filename: string): string {}
-    goTo(filename: string, line: number, col: number): void {
-        
-    }
+    goTo(filename: string, line: number, col: number): void {}
 }

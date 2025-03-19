@@ -13,11 +13,13 @@
         "@codemirror/theme-one-dark": "^6.1.2",
         "@codemirror/view": "^6.36.4",
         "@fullstacked/ui": "github.com:fullstackedorg/ui#b1959309577f3b09ab0ed1ed8248b878c10c2879",
+        "@mistralai/mistralai": "^1.5.2",
         "codemirror": "^6.0.1",
         "codemirror-extension-inline-suggestion": "^0.0.3",
         "ollama": "^0.5.14",
         "openai": "^4.87.3",
-        "streaming-markdown": "^0.1.0"
+        "streaming-markdown": "^0.1.0",
+        "zod": "^3.24.2"
     },
     "devDependencies": {
         "eruda": "^3.4.1"

@@ -19,9 +19,8 @@ export function createPrompt(editorInstance: Editor){
             return
         }
         
-        editorInstance.promptAgent(prompt, true)
+        editorInstance.agentAsk(prompt, true)
         promptInput.input.value = ""
-        
     }
     
     return form;

@@ -4,9 +4,9 @@ import {
     languageHighlightExtension,
     languageToFileExtension,
 } from "../codemirror/languages";
-import { EditorState } from "@codemirror/state";
 import { createCmView } from "../codemirror/view";
 import Editor from "../editor";
+import { EditorView } from "codemirror";
 
 export type AgentConversationMessages = {
     role: "user" | "agent";
@@ -95,7 +95,7 @@ function createMarkdownStreamRenderer(editorInstance: Editor, el: HTMLElement) {
         let parent = data.nodes[data.index];
         const codeView = createCmView({
             contents: "",
-            extensions: [EditorState.readOnly.of(true)],
+            extensions: [EditorView.editable.of(false)],
         }) as ReturnType<typeof createCmView> & {
             setAttribute(attr: string, value: string): void;
             appendChild(text: Text): void;

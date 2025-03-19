@@ -1,0 +1,20 @@
+@use "../node_modules/@fullstacked/ui/values/spacing.scss" as s;
+
+.workspace {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    > ul {
+        list-style-type: none;
+        display: flex;
+        > li {
+            padding: s.$small;
+        }
+    }
+
+    .view {
+        flex: 1;
+        overflow: auto;
+    }
+}

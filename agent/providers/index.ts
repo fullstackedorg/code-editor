@@ -1,21 +1,13 @@
-import { AgentConversationMessages } from "../conversation";
-import { Claude, ClaudeConfiguration } from "./claude";
-import { Ollama, OllamaConfiguration } from "./ollama";
-import { OpenAI, OpenAIConfiguration } from "./openai";
+import { Claude } from "./claude";
+import { Ollama } from "./ollama";
+import { OpenAI } from "./openai";
+import { Mistral } from "./mistral";
 
-export type AgentConfiguration =
-    | OllamaConfiguration
-    | OpenAIConfiguration
-    | ClaudeConfiguration;
+export const providers = [
+    new Ollama(), 
+    new OpenAI(), 
+    new Claude(),
+    new Mistral()
+];
 
-export const providers = [Ollama, OpenAI, Claude];
 
-export interface AgentProvider {
-    name: string;
-    getConfig: () => AgentConfiguration;
-    configure(config: Partial<AgentConfiguration>): void;
-    test(config?: Partial<AgentConfiguration>): Promise<boolean>;
-    form(): HTMLFormElement;
-    chat(messages: AgentConversationMessages): Promise<AsyncIterable<string>>;
-    completion(prompt: string, suffix: string): void;
-}

@@ -18,7 +18,11 @@ export async function languageHighlightExtension(lang: string): Promise<Extensio
     switch (lang) {
         case "javascript":
         case "typescript":
+        case "js":
         case "jsx":
+        case "cjs":
+        case "mjs":
+        case "ts":
         case "tsx":
             const { javascript } = await import("@codemirror/lang-javascript");
             return javascript({

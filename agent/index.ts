@@ -1,52 +1,25 @@
-import { Ollama } from "./providers/ollama";
-import { AgentConfiguration, AgentProvider } from "./providers";
-import { OpenAI } from "./providers/openai";
+import { providers } from "./providers";
 import Editor from "../editor";
 import { createConfigure } from "./configure";
 import { createPrompt } from "./prompt";
 import { createConversation } from "./conversation";
-import { Claude } from "./providers/claude";
+import { AGENT_USE, AgentProviderGeneric } from "./providers/agentProvider";
 
 export function createAgent(editorInstance: Editor) {
-    let currentProvider: AgentProvider = null;
-    const agentProviders: AgentProvider[] = [];
+    const currentProviders: { [key: string]: AgentProviderGeneric } = {};
     let configure: ReturnType<typeof createConfigure>;
     let conversation: ReturnType<typeof createConversation>;
     let prompt: ReturnType<typeof createPrompt>;
 
-    const didConfigureProvider = (provider: AgentProvider) => {
-        currentProvider = provider;
-
-        const indexOf = agentProviders.findIndex(
-            (p) => p.name === provider.name,
-        );
-        if (indexOf !== -1) {
-            agentProviders.splice(indexOf, 1);
-        }
-        agentProviders.push(provider);
-        editorInstance.updatedAgentConfiguration();
-    };
-
-    const configurations = editorInstance.opts
-        ?.agentConfigurations as (AgentConfiguration & {
-        current: boolean;
-    })[];
+    const configurations = editorInstance.opts.agentConfigurations;
     if (configurations?.length) {
-        let savedCurrentProvider = null;
-        for (const config of configurations) {
-            const provider = getProviderFromConfig(config);
-            if (!provider) continue;
-
-            provider.configure(config);
-            didConfigureProvider(provider);
-
-            if (config.current) {
-                savedCurrentProvider = provider;
-            }
-        }
-
-        if (savedCurrentProvider) {
-            currentProvider = savedCurrentProvider;
+        for (const configWithUses of configurations) {
+            const provider = providers.find(
+                ({ id }) => id === configWithUses.type,
+            ) as AgentProviderGeneric;
+            const { uses, ...config } = configWithUses;
+            provider?.configure(config);
+            uses?.forEach((u) => (currentProviders[u] = provider));
         }
     }
 
@@ -54,8 +27,14 @@ export function createAgent(editorInstance: Editor) {
         get configure() {
             if (!configure) {
                 configure = createConfigure(
-                    currentProvider,
-                    didConfigureProvider,
+                    editorInstance.opts?.agentUses || ["chat"],
+                    () => editorInstance.updatedAgentConfiguration(),
+                    () => currentProviders,
+                    (provider: AgentProviderGeneric, use: AGENT_USE) => {
+                        currentProviders[use] = provider;
+                        console.log(use, provider);
+                        editorInstance.updatedAgentConfiguration();
+                    },
                 );
             }
 
@@ -77,57 +56,53 @@ export function createAgent(editorInstance: Editor) {
         },
 
         getConfigurations() {
-            return agentProviders.map((p) =>
-                p.name === currentProvider.name
-                    ? {
-                          current: true,
-                          ...p.getConfig(),
-                      }
-                    : p.getConfig(),
-            );
+            console.log(currentProviders);
+            return providers
+                .filter(({ client }) => !!client)
+                .map((p) => {
+                    const uses = [];
+
+                    Object.entries(currentProviders).forEach(([u, pp]) => {
+                        if (pp === p) {
+                            uses.push(u);
+                        }
+                    });
+
+                    return {
+                        uses,
+                        ...p.config,
+                    };
+                });
         },
 
+        complete(prompt: string, suffix: string) {
+            const completionProvider = currentProviders?.["completion"];
+            if (!completionProvider) return;
+            return completionProvider.completion(prompt, suffix);
+        },
         ask(text: string, chat: boolean) {
+            const chatProvider = currentProviders?.["chat"];
+            if (!chatProvider) return;
+
             if (chat) {
                 conversation?.addUserMessage(text);
-
-                if (!currentProvider) {
-                    conversation?.addAgentMessage("No provider configured");
-                } else {
-                    currentProvider
-                        .chat(
-                            conversation?.messages || [
-                                {
-                                    role: "user",
-                                    content: text,
-                                },
-                            ],
-                        )
-                        .then((stream) =>
-                            conversation?.addAgentMessage(
-                                stream,
-                                currentProvider.name,
-                            ),
-                        );
-                }
+                chatProvider
+                    .chat(
+                        conversation?.messages || [
+                            {
+                                role: "user",
+                                content: text,
+                            },
+                        ],
+                    )
+                    .then((stream) =>
+                        conversation?.addAgentMessage(
+                            stream,
+                            chatProvider.name,
+                        ),
+                    );
             } else {
-                if (!currentProvider) {
-                } else {
-                }
             }
         },
     };
-}
-
-function getProviderFromConfig(configuration: AgentConfiguration) {
-    switch (configuration.type) {
-        case "ollama":
-            return Ollama;
-        case "openai":
-            return OpenAI;
-        case "claude":
-            return Claude;
-        default:
-            return null;
-    }
 }
