@@ -1,24 +1,20 @@
 @use "../node_modules/@fullstacked/ui/values/spacing.scss" as s;
 
 .agent-configure {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    padding: s.$large;
+    form {
+        margin: 0;
+    }
+    .input-text,
+    .input-select {
+        margin-bottom: s.$small;
+    }
+}
+.agent-configure-action-row {
     display: flex;
-    flex-direction: column;
-    gap: s.$small;
-    button {
-        align-self: flex-end;
-    }
-
-    .loader-text {
-        text-align: center;
-    }
-
-    .loader {
-        height: 45px;
-        width: 40px;
-        margin: 0 auto;
+    align-items: center;
+    > div {
+        &:first-child {
+            flex: 1;
+        }
     }
 }

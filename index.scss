@@ -3,8 +3,7 @@
 @use "./node_modules/@fullstacked/ui/values/typography.scss" as t;
 @use "./node_modules/@fullstacked/ui/ui.scss";
 
-@use "./agent/configure.scss";
-@use "./agent/chat.scss";
+@use "./editor.scss";
 
 html,
 body {
@@ -21,38 +20,14 @@ main {
         height: 100%;
         max-width: 50%;
         max-height: 100%;
-        overflow: auto;
-    }
-
-    > .agent-container {
-        display: flex;
-        flex-direction: column;
-        padding-bottom: s.$x-small;
-
-        > .agent-chat > form,
-        > .agent-chat > .conversation {
-            padding-left: s.$medium;
-            padding-right: s.$medium;
-        }
-
-        > .agent-chat > .conversation .cm-container {
-            margin-left: 0 - s.$medium;
-            margin-right: 0 - s.$medium;
-            width: calc(100% + s.$medium * 2);
-
-            .cm-editor,
-            .cm-gutters {
-                background-color: c.$dark !important;
+        &:first-child {
+            display: flex;
+            flex-direction: column;
+            gap: s.$small;
+            > div:nth-child(2) {
+                flex: 1;
+                overflow: auto;
             }
-            .cm-activeLine,
-            .cm-activeLineGutter {
-                background-color: transparent!important;
-            }
-        }
-
-        > .agent-chat > form {
-            padding-top: s.$x-small;
-            padding-bottom: s.$medium;
         }
     }
 

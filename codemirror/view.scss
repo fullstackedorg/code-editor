@@ -1,0 +1,15 @@
+@use "../node_modules/@fullstacked/ui/values/colors.scss" as c;
+
+.cm-container {
+    .cm-editor,
+    .cm-gutters {
+        background-color: c.$dark !important;
+    }
+
+    &.read-only {
+        .cm-activeLine,
+        .cm-activeLineGutter {
+            background-color: transparent !important;
+        }
+    }
+}

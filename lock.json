@@ -1,12 +1,22 @@
 {
     "packages": [
         {
+            "name": "@anthropic-ai/sdk",
+            "version": "0.39.0",
+            "as": [
+                "^0.39.0"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
             "name": "@codemirror/autocomplete",
             "version": "6.18.6",
             "as": [
                 "^6.0.0",
-                "^6.7.1",
-                "^6.3.2"
+                "^6.3.2",
+                "^6.7.1"
             ],
             "location": [
                 "node_modules"
@@ -122,9 +132,9 @@
             "as": [
                 "^6.0.0",
                 "^6.6.0",
+                "^6.8.0",
                 "^6.3.0",
-                "^6.4.0",
-                "^6.8.0"
+                "^6.4.0"
             ],
             "location": [
                 "node_modules"
@@ -154,8 +164,8 @@
             "name": "@codemirror/state",
             "version": "6.5.2",
             "as": [
-                "^6.0.0",
                 "^6.5.0",
+                "^6.0.0",
                 "^6.4.0"
             ],
             "location": [
@@ -178,10 +188,10 @@
             "as": [
                 "^6.36.4",
                 "^6.0.0",
-                "^6.17.0",
-                "^6.35.0",
                 "^6.23.0",
-                "^6.27.0"
+                "^6.17.0",
+                "^6.27.0",
+                "^6.35.0"
             ],
             "location": [
                 "node_modules"
@@ -192,7 +202,7 @@
             "version": "0.0.1",
             "git": "commit",
             "as": [
-                "github.com:fullstackedorg/ui#ede6fa9103792d018fa418240bb928c0271f5bdb"
+                "github.com:fullstackedorg/ui#b1959309577f3b09ab0ed1ed8248b878c10c2879"
             ],
             "location": [
                 "node_modules"
@@ -203,9 +213,9 @@
             "version": "1.2.3",
             "as": [
                 "^1.0.0",
-                "^1.0.2",
-                "^1.2.0",
                 "^1.2.1",
+                "^1.2.0",
+                "^1.0.2",
                 "^1.1.0"
             ],
             "location": [
@@ -278,8 +288,8 @@
             "name": "@lezer/lr",
             "version": "1.4.2",
             "as": [
-                "^1.0.0",
                 "^1.3.1",
+                "^1.0.0",
                 "^1.3.0"
             ],
             "location": [
@@ -327,13 +337,24 @@
             ]
         },
         {
+            "name": "@mistralai/mistralai",
+            "version": "1.5.2",
+            "as": [
+                "^1.5.2"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
             "name": "@types/node",
             "version": "18.19.80",
             "as": [
                 "^18.11.18"
             ],
             "location": [
-                "node_modules/openai/node_modules"
+                "node_modules/openai/node_modules",
+                "node_modules/@anthropic-ai/sdk/node_modules"
             ]
         },
         {
@@ -592,8 +613,8 @@
             "name": "has-symbols",
             "version": "1.1.0",
             "as": [
-                "^1.1.0",
-                "^1.0.3"
+                "^1.0.3",
+                "^1.1.0"
             ],
             "location": [
                 "node_modules"
@@ -690,6 +711,16 @@
             ]
         },
         {
+            "name": "ollama",
+            "version": "0.5.14",
+            "as": [
+                "^0.5.14"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
             "name": "openai",
             "version": "4.87.3",
             "as": [
@@ -713,8 +744,8 @@
             "name": "style-mod",
             "version": "4.1.2",
             "as": [
-                "^4.0.0",
-                "^4.1.0"
+                "^4.1.0",
+                "^4.0.0"
             ],
             "location": [
                 "node_modules"
@@ -737,7 +768,8 @@
                 "~5.26.4"
             ],
             "location": [
-                "node_modules/openai/node_modules/@types/node/node_modules"
+                "node_modules/openai/node_modules/@types/node/node_modules",
+                "node_modules/@anthropic-ai/sdk/node_modules/@types/node/node_modules"
             ]
         },
         {
@@ -781,10 +813,40 @@
             ]
         },
         {
+            "name": "whatwg-fetch",
+            "version": "3.6.20",
+            "as": [
+                "^3.6.20"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
             "name": "whatwg-url",
             "version": "5.0.0",
             "as": [
                 "^5.0.0"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
+            "name": "zod",
+            "version": "3.24.2",
+            "as": [
+                "^3.24.2"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
+            "name": "zod-to-json-schema",
+            "version": "3.24.4",
+            "as": [
+                "^3.24.1"
             ],
             "location": [
                 "node_modules"
