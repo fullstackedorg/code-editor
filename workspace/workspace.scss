@@ -1,15 +1,21 @@
 @use "../node_modules/@fullstacked/ui/values/spacing.scss" as s;
+@use "../node_modules/@fullstacked/ui/values/colors.scss" as c;
 
 .workspace {
     height: 100%;
     display: flex;
     flex-direction: column;
+    background-color: c.$dark;
 
     > ul {
+        margin: 0;
         list-style-type: none;
         display: flex;
+        padding: 0;
+        border-bottom: 1px solid c.$gray;
         > li {
             padding: s.$small;
+            border-right: 1px solid c.$gray;
         }
     }
 
