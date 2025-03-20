@@ -139,9 +139,14 @@ function createMarkdownStreamRenderer(editorInstance: Editor, el: HTMLElement) {
             createFileButton.onclick = async () => {
                 const text = codeView.value;
                 const lang = codeView.lang;
-                // const summarized = (await summarize(text)).choices.at(0).message
-                //     .content;
-                const fileName = "index." + languageToFileExtension(lang);
+                const summarized = await editorInstance.agentAsk(
+                    `Summarize in one word only what this code is about, no markdown: ${text}`,
+                    false,
+                );
+                const fileName =
+                    summarized.split(".").shift() +
+                    "." +
+                    languageToFileExtension(lang);
                 editorInstance.openFile(fileName, text);
             };
             actions.append(createFileButton);

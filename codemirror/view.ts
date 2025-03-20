@@ -1,9 +1,10 @@
 import { EditorView, basicSetup } from "codemirror";
 import { keymap } from "@codemirror/view";
 import { EditorSelection, Extension, StateEffect } from "@codemirror/state";
-import { oneDark } from "@codemirror/theme-one-dark";
 import { indentWithTab } from "@codemirror/commands";
 import { indentUnit } from "@codemirror/language";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { coloredBrackets } from "./brackets";
 
 type CmViewOpts = {
     contents: string;
@@ -21,6 +22,7 @@ export function createCmView(opts: CmViewOpts) {
         doc: opts.contents,
         extensions: [
             oneDark,
+            coloredBrackets,
             basicSetup,
             keymap.of([indentWithTab]),
             indentUnit.of(new Array(tabWidth + 1).join(" ")),

@@ -1,10 +1,13 @@
 import { Extension } from "@codemirror/state";
 import { createWorkspace } from "./workspace";
 import { createAgent } from "./agent";
-import { AGENT_USE, AgentConfigWithUses } from "./agent/providers/agentProvider";
+import {
+    AGENT_USE,
+    AgentConfigWithUses,
+} from "./agent/providers/agentProvider";
 
 type EditorOpts = {
-    agentUses?: AGENT_USE[],
+    agentUses?: AGENT_USE[];
     agentConfigurations?: AgentConfigWithUses[];
     codemirrorExtraExtensions?(filename: string): Extension[];
 };
@@ -58,13 +61,25 @@ export default class Editor extends EventTarget {
     }
 
     agentAsk(text: string, chat: true): void;
-    // agentAsk(text: string, chat: false): Promise<AsyncIterator>;
-    agentAsk(text: string, chat: boolean): void {
+    agentAsk(text: string, chat: false): Promise<string>;
+    agentAsk(text: string, chat: boolean) {
         if (!this.agent) {
             this.agent = createAgent(this);
         }
 
-        this.agent.ask(text, chat);
+        const response = this.agent.ask(text, chat);
+        if (chat) {
+            return;
+        }
+
+        return new Promise(async (resolve) => {
+            const stream = await response;
+            let answer = "";
+            for await (const chunk of stream) {
+                answer += chunk;
+            }
+            resolve(answer);
+        });
     }
     agentComplete(prompt: string, suffix: string): Promise<string> {
         if (!this.agent) {

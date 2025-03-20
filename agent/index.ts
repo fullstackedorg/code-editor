@@ -102,6 +102,12 @@ export function createAgent(editorInstance: Editor) {
                         ),
                     );
             } else {
+                return chatProvider.chat([
+                    {
+                        role: "user",
+                        content: text,
+                    },
+                ]);
             }
         },
     };
