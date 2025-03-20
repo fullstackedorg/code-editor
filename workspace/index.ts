@@ -3,6 +3,7 @@ import { createCmView } from "../codemirror/view";
 import Editor from "../editor";
 import { inlineSuggestion } from "codemirror-extension-inline-suggestion";
 import { EditorState } from "@codemirror/state";
+import { Button } from "@fullstacked/ui";
 
 type WorkspaceFile = {
     name: string;
@@ -31,60 +32,67 @@ export function createWorkspace(editorInstance: Editor) {
         return response;
     };
 
+    const add = (name: string, contents: string) => {
+        let file = files.find((f) => f.name === name);
+
+        if (!file) {
+            const tab = createTab(name, remove);
+            tabs.append(tab);
+            const view = createCmView({
+                contents,
+                extensions: [
+                    inlineSuggestion({
+                        fetchFn: getAutocomplete,
+                        delay: 500,
+                    }),
+                    ...(editorInstance.opts.codemirrorExtraExtensions?.(name) ||
+                        []),
+                ],
+            });
+            file = {
+                name,
+                tab,
+                view,
+            };
+            files.push(file);
+
+            const fileExtension = name.split(".").pop();
+            languageHighlightExtension(fileExtension).then(view.addExtension);
+        } else {
+            file.view.replaceContents(contents);
+        }
+
+        viewContainer.append(file.view.container);
+    };
+
+    const remove = (name: string) => {
+        const indexOf = files.findIndex((f) => f.name === name);
+        if (indexOf === -1) return;
+        const [file] = files.splice(indexOf, 1);
+        file.tab.remove();
+        file.view.remove();
+    };
+
     return {
         container,
         files: {
             get() {
                 return files;
             },
-            add(name: string, contents: string) {
-                let file = files.find((f) => f.name === name);
-
-                if (!file) {
-                    const tab = createTab(name);
-                    tabs.append(tab);
-                    const view = createCmView({
-                        contents,
-                        extensions: [
-                            inlineSuggestion({
-                                fetchFn: getAutocomplete,
-                                delay: 500,
-                            }),
-                            ...(editorInstance.opts.codemirrorExtraExtensions?.(
-                                name,
-                            ) || []),
-                        ],
-                    });
-                    file = {
-                        name,
-                        tab,
-                        view,
-                    };
-                    files.push(file);
-
-                    const fileExtension = name.split(".").pop();
-                    languageHighlightExtension(fileExtension).then(
-                        view.addExtension,
-                    );
-                } else {
-                    file.view.replaceContents(contents);
-                }
-
-                viewContainer.append(file.view.container);
-            },
-            remove(name: string) {
-                const indexOf = files.findIndex((f) => f.name === name);
-                if (indexOf === -1) return;
-                const [file] = files.splice(indexOf, 1);
-                file.tab.remove();
-                file.view.remove();
-            },
+            add,
+            remove,
         },
     };
 }
 
-function createTab(filename: string) {
+function createTab(name: string, remove: (name: string) => void) {
     const tab = document.createElement("li");
-    tab.innerText = filename;
+    tab.innerText = name;
+    const closeButton = Button({
+        iconLeft: "Close",
+        style: "icon-small",
+    });
+    tab.append(closeButton);
+    closeButton.onclick = () => remove(name);
     return tab;
 }

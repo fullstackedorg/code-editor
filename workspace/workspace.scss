@@ -14,8 +14,11 @@
         padding: 0;
         border-bottom: 1px solid c.$gray;
         > li {
-            padding: s.$small;
+            padding: s.$x-small s.$x-small s.$x-small s.$small;
             border-right: 1px solid c.$gray;
+            display: flex;
+            align-items: center;
+            gap: s.$x-small;
         }
     }
 
