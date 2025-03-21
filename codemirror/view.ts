@@ -11,7 +11,7 @@ type CmViewOpts = {
     extensions?: Extension[];
 };
 
-const tabWidth = 4;
+export const tabWidth = 4;
 
 export function createCmView(opts: CmViewOpts) {
     const container = document.createElement("div");

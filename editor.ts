@@ -89,14 +89,8 @@ export default class Editor extends EventTarget {
         return this.agent.complete(prompt, suffix);
     }
 
-    openFile(filename: string, contents: string): void {
-        this.workspace?.files.add(filename, contents);
-    }
-    closeFile(filename: string): void {
-        this.workspace?.files.remove(filename);
-    }
-    formatFile(filename: string): void {
-        this.workspace?.files.format(filename);
+    getWorkspaceFiles(){
+        return this.workspace?.files
     }
     getFileContents(filename: string): string {}
     goTo(filename: string, line: number, col: number): void {}

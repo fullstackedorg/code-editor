@@ -141,10 +141,10 @@
             "version": "6.11.0",
             "as": [
                 "^6.0.0",
-                "^6.6.0",
                 "^6.8.0",
                 "^6.3.0",
-                "^6.4.0"
+                "^6.4.0",
+                "^6.6.0"
             ],
             "location": [
                 "node_modules"
@@ -199,9 +199,9 @@
                 "^6.36.4",
                 "^6.0.0",
                 "^6.17.0",
+                "^6.27.0",
                 "^6.23.0",
-                "^6.35.0",
-                "^6.27.0"
+                "^6.35.0"
             ],
             "location": [
                 "node_modules"
@@ -223,8 +223,8 @@
             "version": "1.2.3",
             "as": [
                 "^1.0.0",
-                "^1.0.2",
                 "^1.2.1",
+                "^1.0.2",
                 "^1.2.0",
                 "^1.1.0"
             ],
@@ -363,8 +363,8 @@
                 "^18.11.18"
             ],
             "location": [
-                "node_modules/@anthropic-ai/sdk/node_modules",
-                "node_modules/openai/node_modules"
+                "node_modules/openai/node_modules",
+                "node_modules/@anthropic-ai/sdk/node_modules"
             ]
         },
         {
@@ -742,6 +742,16 @@
             ]
         },
         {
+            "name": "prettier",
+            "version": "3.5.3",
+            "as": [
+                "^3.5.3"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
             "name": "regenerator-runtime",
             "version": "0.14.1",
             "as": [
@@ -789,8 +799,8 @@
                 "~5.26.4"
             ],
             "location": [
-                "node_modules/@anthropic-ai/sdk/node_modules/@types/node/node_modules",
-                "node_modules/openai/node_modules/@types/node/node_modules"
+                "node_modules/openai/node_modules/@types/node/node_modules",
+                "node_modules/@anthropic-ai/sdk/node_modules/@types/node/node_modules"
             ]
         },
         {

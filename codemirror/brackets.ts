@@ -13,7 +13,13 @@ const yellow = "#ffd700",
 
 const colors = ["yellow", "violet", "blue"];
 
-const skip = ["LineComment", "InterpolationStart", "Interpolation", "String"];
+const skip = [
+    "LineComment",
+    "InterpolationStart",
+    "Interpolation",
+    "String",
+    "BlockComment",
+];
 
 const coloredBracketsPlugin = ViewPlugin.fromClass(
     class {

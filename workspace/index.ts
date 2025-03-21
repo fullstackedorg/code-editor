@@ -4,6 +4,7 @@ import Editor from "../editor";
 import { inlineSuggestion } from "codemirror-extension-inline-suggestion";
 import { EditorState } from "@codemirror/state";
 import { Button } from "@fullstacked/ui";
+import { formatContents } from "./prettier";
 
 type WorkspaceFile = {
     name: string;
@@ -12,6 +13,8 @@ type WorkspaceFile = {
 };
 
 export function createWorkspace(editorInstance: Editor) {
+    let currentFile: WorkspaceFile = null;
+
     const container = document.createElement("div");
     container.classList.add("workspace");
 
@@ -32,21 +35,23 @@ export function createWorkspace(editorInstance: Editor) {
         return response;
     };
 
+    const open = (file: WorkspaceFile) => {
+        if (!file) return;
+        files.forEach((f) =>
+            f === file
+                ? f.tab.classList.add("active")
+                : f.tab.classList.remove("active"),
+        );
+        Array.from(viewContainer.children).forEach((c) => c.remove());
+        viewContainer.append(file.view.container);
+        currentFile = file;
+    };
+
     const add = (name: string, contents: string) => {
         let file = files.find((f) => f.name === name);
 
-        const open = () => {
-            files.forEach((f) =>
-                f === file
-                    ? f.tab.classList.add("active")
-                    : f.tab.classList.remove("active"),
-            );
-            Array.from(viewContainer.children).forEach((c) => c.remove());
-            viewContainer.append(file.view.container);
-        };
-
         if (!file) {
-            const tab = createTab(name, open, remove);
+            const tab = createTab(name, () => open(file), remove);
             tabs.append(tab);
             const view = createCmView({
                 contents,
@@ -72,44 +77,52 @@ export function createWorkspace(editorInstance: Editor) {
             file.view.replaceContents(contents);
         }
 
-        open();
+        open(file);
     };
 
     const remove = (name: string) => {
         const indexOf = files.findIndex((f) => f.name === name);
         if (indexOf === -1) return;
         const [file] = files.splice(indexOf, 1);
+
+        if (file === currentFile) {
+            currentFile = null;
+            open(files.at(indexOf) || files.at(-1));
+        }
+
         file.tab.remove();
         file.view.remove();
     };
 
-    const format = (name: string) => {
-        const file = files.find(f => f.name === name);
-        if(!file) return;
-        
-    }
+    const format = async (name: string) => {
+        const file = files.find((f) => f.name === name);
+        if (!file) return;
+        const formatted = await formatContents(name, file.view.value);
+        if (formatted !== file.view.value) {
+            file.view.replaceContents(formatted);
+        }
+    };
 
     return {
         container,
         files: {
-            get() {
-                return files;
-            },
+            current: () => currentFile.name,
+            get: () => files.map(({ name }) => name),
             add,
             remove,
-            format
+            format,
         },
     };
 }
 
 function createTab(
     name: string,
-    open: (name: string) => void,
+    open: () => void,
     remove: (name: string) => void,
 ) {
     const tab = document.createElement("li");
     tab.innerText = name;
-    tab.onclick = () => open(name);
+    tab.onclick = () => open();
     const closeButton = Button({
         iconLeft: "Close",
         style: "icon-small",
