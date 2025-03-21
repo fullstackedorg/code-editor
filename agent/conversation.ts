@@ -144,7 +144,7 @@ function createMarkdownStreamRenderer(editorInstance: Editor, el: HTMLElement) {
                     false,
                 );
                 const fileName =
-                    summarized.split(".").shift() +
+                    summarized.split(".").shift().toLowerCase() +
                     "." +
                     languageToFileExtension(lang);
                 editorInstance.openFile(fileName, text);

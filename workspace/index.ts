@@ -35,8 +35,18 @@ export function createWorkspace(editorInstance: Editor) {
     const add = (name: string, contents: string) => {
         let file = files.find((f) => f.name === name);
 
+        const open = () => {
+            files.forEach((f) =>
+                f === file
+                    ? f.tab.classList.add("active")
+                    : f.tab.classList.remove("active"),
+            );
+            Array.from(viewContainer.children).forEach((c) => c.remove());
+            viewContainer.append(file.view.container);
+        };
+
         if (!file) {
-            const tab = createTab(name, remove);
+            const tab = createTab(name, open, remove);
             tabs.append(tab);
             const view = createCmView({
                 contents,
@@ -62,7 +72,7 @@ export function createWorkspace(editorInstance: Editor) {
             file.view.replaceContents(contents);
         }
 
-        viewContainer.append(file.view.container);
+        open();
     };
 
     const remove = (name: string) => {
@@ -85,14 +95,22 @@ export function createWorkspace(editorInstance: Editor) {
     };
 }
 
-function createTab(name: string, remove: (name: string) => void) {
+function createTab(
+    name: string,
+    open: (name: string) => void,
+    remove: (name: string) => void,
+) {
     const tab = document.createElement("li");
     tab.innerText = name;
+    tab.onclick = () => open(name);
     const closeButton = Button({
         iconLeft: "Close",
         style: "icon-small",
     });
     tab.append(closeButton);
-    closeButton.onclick = () => remove(name);
+    closeButton.onclick = (e) => {
+        e.stopPropagation();
+        remove(name);
+    };
     return tab;
 }

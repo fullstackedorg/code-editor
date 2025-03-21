@@ -19,6 +19,10 @@
             display: flex;
             align-items: center;
             gap: s.$x-small;
+            color: c.opacity(c.$light, 50);
+            &.active {
+                color: c.$light;
+            }
         }
     }
 
