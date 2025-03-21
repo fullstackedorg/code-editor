@@ -141,7 +141,7 @@ function createMarkdownStreamRenderer(editorInstance: Editor, el: HTMLElement) {
                 const lang = codeView.lang;
                 const workspaceFiles = editorInstance.getWorkspaceFiles();
                 if(!workspaceFiles) return;
-                const summarized = await editorInstance.agentAsk(
+                const summarized = await editorInstance.getAgent().ask(
                     `Summarize in one word only what this code is about, no markdown: ${text}`,
                     false,
                 );

@@ -56,42 +56,22 @@ export default class Editor extends EventTarget {
         const e = new Event(
             "agent-configuration-update",
         ) as AgentConfigurationUpdate;
-        e.agentConfigurations = this.agent.getConfigurations();
+        e.agentConfigurations = this.agent.api.configurations;
         this.dispatchEvent(e);
     }
 
-    agentAsk(text: string, chat: true): void;
-    agentAsk(text: string, chat: false): Promise<string>;
-    agentAsk(text: string, chat: boolean) {
-        if (!this.agent) {
+    getAgent() {
+        if (this.agent === undefined) {
             this.agent = createAgent(this);
         }
 
-        const response = this.agent.ask(text, chat);
-        if (chat) {
-            return;
+        return this.agent.api as Editor["agent"]["api"] & {
+            ask(text: string, chat: false): Promise<string>;
+            ask(text: string, chat: true): void;
         }
-
-        return new Promise(async (resolve) => {
-            const stream = await response;
-            let answer = "";
-            for await (const chunk of stream) {
-                answer += chunk;
-            }
-            resolve(answer);
-        });
-    }
-    agentComplete(prompt: string, suffix: string): Promise<string> {
-        if (!this.agent) {
-            this.agent = createAgent(this);
-        }
-
-        return this.agent.complete(prompt, suffix);
     }
 
     getWorkspaceFiles(){
         return this.workspace?.files
     }
-    getFileContents(filename: string): string {}
-    goTo(filename: string, line: number, col: number): void {}
 }

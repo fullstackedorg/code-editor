@@ -22,7 +22,7 @@ export function createWorkspace(editorInstance: Editor) {
 
     const tabs = document.createElement("ul");
     const viewContainer = document.createElement("div");
-    viewContainer.classList.add("view");
+    viewContainer.classList.add("workspace-view");
 
     container.append(tabs, viewContainer);
 
@@ -31,12 +31,21 @@ export function createWorkspace(editorInstance: Editor) {
         const cursor = state.selection.main.head;
         const prefix = text.slice(0, cursor);
         const suffix = text.slice(cursor) || " \n";
-        const response = await editorInstance.agentComplete(prefix, suffix);
+        const response = await editorInstance
+            .getAgent()
+            .complete(prefix, suffix);
         return response;
+    };
+
+    const get = (name: string) => {
+        return files.find((f) => f.name === name)?.view.value;
     };
 
     const open = (file: WorkspaceFile) => {
         if (!file) return;
+        if (currentFile) {
+            currentFile.view.scroll.stash();
+        }
         files.forEach((f) =>
             f === file
                 ? f.tab.classList.add("active")
@@ -45,6 +54,7 @@ export function createWorkspace(editorInstance: Editor) {
         Array.from(viewContainer.children).forEach((c) => c.remove());
         viewContainer.append(file.view.container);
         currentFile = file;
+        currentFile.view.scroll.restore();
     };
 
     const add = (name: string, contents: string) => {
@@ -80,6 +90,12 @@ export function createWorkspace(editorInstance: Editor) {
         open(file);
     };
 
+    const update = (name: string, contents: string) => {
+        const indexOf = files.findIndex((f) => f.name === name);
+        if (indexOf === -1) return;
+        files.at(indexOf).view.replaceContents(contents);
+    };
+
     const remove = (name: string) => {
         const indexOf = files.findIndex((f) => f.name === name);
         if (indexOf === -1) return;
@@ -103,13 +119,24 @@ export function createWorkspace(editorInstance: Editor) {
         }
     };
 
+    const goTo = (name: string, pos: number) => {
+        const file = files.find((f) => f.name === name);
+        if (!file) return;
+        open(file);
+        file.view.editorView.dispatch({
+            selection: { anchor: pos, head: pos },
+        });
+    };
+
     return {
         container,
         files: {
             current: () => currentFile.name,
-            get: () => files.map(({ name }) => name),
+            get,
             add,
+            update,
             remove,
+            goTo,
             format,
         },
     };

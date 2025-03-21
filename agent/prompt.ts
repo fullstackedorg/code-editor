@@ -19,7 +19,7 @@ export function createPrompt(editorInstance: Editor){
             return
         }
         
-        editorInstance.agentAsk(prompt, true)
+        editorInstance.getAgent().ask(prompt, true)
         promptInput.input.value = ""
     }
     

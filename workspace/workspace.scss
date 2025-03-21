@@ -20,14 +20,18 @@
             align-items: center;
             gap: s.$x-small;
             color: c.opacity(c.$light, 50);
+            cursor: pointer;
             &.active {
                 color: c.$light;
             }
         }
     }
 
-    .view {
+    .workspace-view {
         flex: 1;
         overflow: auto;
+        .cm-line:last-child {
+            margin-bottom: calc(100% - 25px);
+        }
     }
 }

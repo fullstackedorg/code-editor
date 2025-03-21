@@ -55,60 +55,67 @@ export function createAgent(editorInstance: Editor) {
             return prompt;
         },
 
-        getConfigurations() {
-            console.log(currentProviders);
-            return providers
-                .filter(({ client }) => !!client)
-                .map((p) => {
-                    const uses = [];
+        api: {
+            get configurations() {
+                return providers
+                    .filter(({ client }) => !!client)
+                    .map((p) => {
+                        const uses = [];
 
-                    Object.entries(currentProviders).forEach(([u, pp]) => {
-                        if (pp === p) {
-                            uses.push(u);
-                        }
+                        Object.entries(currentProviders).forEach(([u, pp]) => {
+                            if (pp === p) {
+                                uses.push(u);
+                            }
+                        });
+
+                        return {
+                            uses,
+                            ...p.config,
+                        };
                     });
+            },
+            complete(prompt: string, suffix: string) {
+                const completionProvider = currentProviders?.["completion"];
+                if (!completionProvider) return;
+                return completionProvider.completion(prompt, suffix);
+            },
+            ask(text: string, chat: boolean) {
+                const chatProvider = currentProviders?.["chat"];
+                if (!chatProvider) return;
 
-                    return {
-                        uses,
-                        ...p.config,
-                    };
-                });
-        },
-
-        complete(prompt: string, suffix: string) {
-            const completionProvider = currentProviders?.["completion"];
-            if (!completionProvider) return;
-            return completionProvider.completion(prompt, suffix);
-        },
-        ask(text: string, chat: boolean) {
-            const chatProvider = currentProviders?.["chat"];
-            if (!chatProvider) return;
-
-            if (chat) {
-                conversation?.addUserMessage(text);
-                chatProvider
-                    .chat(
-                        conversation?.messages || [
+                if (chat) {
+                    conversation?.addUserMessage(text);
+                    chatProvider
+                        .chat(
+                            conversation?.messages || [
+                                {
+                                    role: "user",
+                                    content: text,
+                                },
+                            ],
+                        )
+                        .then((stream) =>
+                            conversation?.addAgentMessage(
+                                stream,
+                                chatProvider.name,
+                            ),
+                        );
+                } else {
+                    return new Promise(async (resolve) => {
+                        const stream = await chatProvider.chat([
                             {
                                 role: "user",
                                 content: text,
                             },
-                        ],
-                    )
-                    .then((stream) =>
-                        conversation?.addAgentMessage(
-                            stream,
-                            chatProvider.name,
-                        ),
-                    );
-            } else {
-                return chatProvider.chat([
-                    {
-                        role: "user",
-                        content: text,
-                    },
-                ]);
-            }
+                        ]);
+                        let answer = "";
+                        for await (const chunk of stream) {
+                            answer += chunk;
+                        }
+                        resolve(answer);
+                    });
+                }
+            },
         },
     };
 }

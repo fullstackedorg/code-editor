@@ -16,6 +16,7 @@ export const tabWidth = 4;
 export function createCmView(opts: CmViewOpts) {
     const container = document.createElement("div");
     container.classList.add("cm-container");
+    let scroll: { top: number; left: number } = null;
 
     const editorView = new EditorView({
         parent: container,
@@ -74,6 +75,20 @@ export function createCmView(opts: CmViewOpts) {
         },
         get value() {
             return editorView.state.doc.toString();
+        },
+        scroll: {
+            stash() {
+                const cmScroller = container.querySelector(".cm-scroller");
+                scroll = {
+                    top: container.parentElement.scrollTop,
+                    left: cmScroller.scrollLeft,
+                };
+            },
+            restore() {
+                if (!scroll) return;
+                container.parentElement.scrollTo(0, scroll.top);
+               container.querySelector(".cm-scroller").scrollTo(scroll.left, 0);
+            },
         },
     };
 }
