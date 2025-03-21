@@ -4,6 +4,7 @@ import { ClaudeConfiguration } from "./claude/config";
 import { AgentConversationMessages } from "../conversation";
 import { MistralConfiguration } from "./mistral/config";
 import { GoogleConfiguration } from "./google/config";
+import { DeepSeekConfiguration } from "./deepseek/config";
 
 export type AGENT_USE = "chat" | "completion";
 export type ModelsSelection = Partial<{ [use: string]: string }>;
@@ -13,7 +14,8 @@ export type AgentConfiguration =
     | OpenAIConfiguration
     | ClaudeConfiguration
     | MistralConfiguration
-    | GoogleConfiguration;
+    | GoogleConfiguration
+    | DeepSeekConfiguration;
 
 export type AgentConfigWithUses = AgentConfiguration & {
     uses: AGENT_USE[];
