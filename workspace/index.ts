@@ -83,6 +83,12 @@ export function createWorkspace(editorInstance: Editor) {
         file.view.remove();
     };
 
+    const format = (name: string) => {
+        const file = files.find(f => f.name === name);
+        if(!file) return;
+        
+    }
+
     return {
         container,
         files: {
@@ -91,6 +97,7 @@ export function createWorkspace(editorInstance: Editor) {
             },
             add,
             remove,
+            format
         },
     };
 }

@@ -95,6 +95,9 @@ export default class Editor extends EventTarget {
     closeFile(filename: string): void {
         this.workspace?.files.remove(filename);
     }
+    formatFile(filename: string): void {
+        this.workspace?.files.format(filename);
+    }
     getFileContents(filename: string): string {}
     goTo(filename: string, line: number, col: number): void {}
 }
