@@ -51,9 +51,9 @@ export class Ollama extends AgentProvider<OllamaConfiguration, ollama.Ollama> {
         return [hostInput.container];
     }
 
-    async chat(messages: AgentConversationMessages) {
+    async chat(messages: AgentConversationMessages, model: string) {
         const response = await this.client.chat({
-            model: this.config.models?.chat || this.defaultModels.chat,
+            model,
             messages: messages.map((m) => ({
                 role: m.role === "agent" ? "assistant" : m.role,
                 content: m.content,
@@ -82,11 +82,9 @@ export class Ollama extends AgentProvider<OllamaConfiguration, ollama.Ollama> {
             },
         };
     }
-    async completion(prompt: string, suffix: string) {
+    async completion(prompt: string, suffix: string, model: string) {
         const response = await this.client.generate({
-            model:
-                this.config?.models?.completion ||
-                this.defaultModels.completion,
+            model,
             prompt,
             suffix,
             options: {

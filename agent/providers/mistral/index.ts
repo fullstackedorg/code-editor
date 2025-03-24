@@ -1,8 +1,7 @@
-import { AgentProvider } from "../agentProvider";
+import { AgentConversationMessages, AgentProvider } from "../agentProvider";
 import { MistralConfiguration, mistralId } from "./config";
 import { core_fetch2 } from "fetch";
 import { InputText } from "@fullstacked/ui";
-import { AgentConversationMessages } from "../../conversation";
 import { Mistral as mistral } from "@mistralai/mistralai";
 import type { CompletionEvent, ModelList } from "@mistralai/mistralai/models/components";
 import { HTTPClient } from "@mistralai/mistralai/lib/http";
@@ -52,9 +51,9 @@ export class Mistral extends AgentProvider<MistralConfiguration, mistral> {
 
         return [apiKeyInput.container];
     }
-    async chat(messages: AgentConversationMessages) {
+    async chat(messages: AgentConversationMessages, model: string) {
         const response = await this.client.chat.stream({
-            model: this.config.models?.chat || this.defaultModels.chat,
+            model,
             messages: messages.map((m) => ({
                 role: m.role === "agent" ? "assistant" : m.role,
                 content: m.content,
@@ -82,9 +81,9 @@ export class Mistral extends AgentProvider<MistralConfiguration, mistral> {
         };
     }
 
-    async completion(prompt: string, suffix: string) {
+    async completion(prompt: string, suffix: string, model: string) {
         const response = await this.client.fim.complete({
-            model: this.config.models?.completion || this.defaultModels.completion,
+            model,
             prompt,
             suffix,
         });

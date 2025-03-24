@@ -1,3 +1,5 @@
+import Editor from "../../editor";
+
 export enum WorkspaceItemType {
     code = "code",
     image = "image",
@@ -5,12 +7,16 @@ export enum WorkspaceItemType {
 }
 
 export abstract class WorkspaceItem {
+    static editorInstance: Editor;
     abstract type: WorkspaceItemType;
 
-    abstract icon(): string;
-    abstract name(): string;
+    abstract icon(): HTMLElement;
+    abstract name(): string | HTMLElement;
     abstract render(): HTMLElement;
+    abstract stash(): void;
+    abstract restore(): void;
     abstract destroy(): void;
+    abstract equals(item: WorkspaceItem): boolean;
 
     private element: HTMLElement;
     get view() {

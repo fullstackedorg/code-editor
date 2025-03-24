@@ -1,7 +1,6 @@
-import { AgentProvider } from "../agentProvider";
+import { AgentConversationMessages, AgentProvider } from "../agentProvider";
 import { GoogleConfiguration, googleId } from "./config";
 import { InputText } from "@fullstacked/ui";
-import { AgentConversationMessages } from "../../conversation";
 import openai from "openai";
 import { core_fetch2 } from "fetch";
 
@@ -50,9 +49,9 @@ export class Google extends AgentProvider<GoogleConfiguration, openai> {
 
         return [apiKeyInput.container];
     }
-    async chat(messages: AgentConversationMessages) {
+    async chat(messages: AgentConversationMessages, model: string) {
         const response = await this.client.chat.completions.create({
-            model: this.config.models?.chat || this.defaultModels.chat,
+            model,
             messages: messages.map((m) => ({
                 role: m.role === "agent" ? "assistant" : m.role,
                 content: m.content,

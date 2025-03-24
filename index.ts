@@ -1,7 +1,9 @@
 import fs from "fs";
 import Editor from "./editor";
 import eruda from "eruda";
-import { AgentConfigWithUses } from "./agent/providers/agentProvider";
+import { AgentConfiguration } from "./agent/providers/agentProvider";
+import { Button } from "@fullstacked/ui";
+import { Chat } from "./workspace/views/chat";
 eruda.init();
 
 if (!(await fs.exists("data"))) {
@@ -9,27 +11,22 @@ if (!(await fs.exists("data"))) {
 }
 
 const agentConfigsFile = "data/agents-config.json";
-let agentConfigurations: AgentConfigWithUses[] = undefined;
+let agentConfigurations: AgentConfiguration[] = undefined;
 if (await fs.exists(agentConfigsFile)) {
     agentConfigurations = JSON.parse(
         await fs.readFile(agentConfigsFile, { encoding: "utf8" }),
     );
 }
 
-const codeEditor = new Editor({
-    agentUses: ["chat", "completion"],
-    agentConfigurations,
-});
+const codeEditor = new Editor({ agentConfigurations });
 
 window.addEventListener("keydown", (e) => {
-    if(e.key !== "s" || !(e.metaKey || e.ctrlKey)) return;
-    
+    if (e.key !== "s" || !(e.metaKey || e.ctrlKey)) return;
+
     e.preventDefault();
     e.stopPropagation();
-    const files = codeEditor.getWorkspaceFiles()
-    const currentFile = files.current();
-    files.format(currentFile);
-})
+    (codeEditor.getWorkspace()?.currentItem?.workspaceItem as any)?.format?.();
+});
 
 codeEditor.addEventListener("agent-configuration-update", (e) => {
     console.log(e.agentConfigurations);
@@ -40,11 +37,16 @@ const main = document.createElement("main");
 const left = document.createElement("div");
 const right = document.createElement("div");
 
-left.append(
-    codeEditor.getAgentElement("configure"),
-    codeEditor.getAgentElement("conversation"),
-    codeEditor.getAgentElement("prompt"),
-);
+const newChatButton = Button({
+    text: "New Chat",
+    iconLeft: "Plus",
+});
+
+newChatButton.onclick = () => {
+    codeEditor.getWorkspace().add(new Chat());
+};
+
+left.append(codeEditor.agentConfigurator, newChatButton);
 right.append(codeEditor.workspaceElement);
 
 main.append(left, right);

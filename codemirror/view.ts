@@ -27,7 +27,7 @@ export function createCmView(opts: CmViewOpts) {
             basicSetup,
             keymap.of([indentWithTab]),
             indentUnit.of(new Array(tabWidth + 1).join(" ")),
-            ...(opts.extensions || []),
+            ...(opts?.extensions || []),
         ],
     });
 
@@ -65,6 +65,8 @@ export function createCmView(opts: CmViewOpts) {
             });
         },
         addExtension(extension: Extension) {
+            if (!extension) return;
+
             editorView.dispatch({
                 effects: StateEffect.appendConfig.of([extension]),
             });
@@ -75,20 +77,6 @@ export function createCmView(opts: CmViewOpts) {
         },
         get value() {
             return editorView.state.doc.toString();
-        },
-        scroll: {
-            stash() {
-                const cmScroller = container.querySelector(".cm-scroller");
-                scroll = {
-                    top: container.parentElement.scrollTop,
-                    left: cmScroller.scrollLeft,
-                };
-            },
-            restore() {
-                if (!scroll) return;
-                container.parentElement.scrollTo(0, scroll.top);
-               container.querySelector(".cm-scroller").scrollTo(scroll.left, 0);
-            },
         },
     };
 }

@@ -1,5 +1,7 @@
 @use "../node_modules/@fullstacked/ui/values/spacing.scss" as s;
 @use "../node_modules/@fullstacked/ui/values/colors.scss" as c;
+@use "../node_modules/@fullstacked/ui/values/typography.scss" as t;
+@use "./dev-icon/dev-icon.scss";
 
 .workspace {
     height: 100%;
@@ -7,12 +9,18 @@
     flex-direction: column;
     background-color: c.$dark;
 
+    form {
+        margin: 0;
+    }
+
     > ul {
         margin: 0;
         list-style-type: none;
         display: flex;
         padding: 0;
         border-bottom: 1px solid c.$gray;
+        white-space: nowrap;
+        overflow: auto;
         > li {
             padding: s.$x-small s.$x-small s.$x-small s.$small;
             border-right: 1px solid c.$gray;
@@ -21,17 +29,139 @@
             gap: s.$x-small;
             color: c.opacity(c.$light, 50);
             cursor: pointer;
+            .icon {
+                height: 24px;
+                width: 24px;
+                padding: 3px;
+            }
+            .chat-icon {
+                color: #c678dd;
+            }
+            .dev-icon {
+                font-size: 24px;
+            }
             &.active {
                 color: c.$light;
             }
         }
     }
 
-    .workspace-view {
+    > div {
+        width: 100%;
         flex: 1;
-        overflow: auto;
-        .cm-line:last-child {
-            margin-bottom: calc(100% - 25px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .workspace-view-code {
+        flex: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        .scrollable {
+            overflow: auto;
+            flex: 1;
+            height: 100%;
+        }
+        .cm-overscroll {
+            height: calc(100% - 25px);
+        }
+        .cm-scroller {
+            overflow: unset;
+            width: max-content;
+            min-width: 100%;
+        }
+    }
+
+    .workspace-view-chat {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+
+        > form {
+            padding: s.$x-small s.$small s.$small;
+        }
+        > .conversation {
+            flex: 1;
+            overflow: auto;
+
+            display: flex;
+            flex-direction: column;
+            gap: s.$medium;
+
+            padding: 0 s.$small;
+
+            .message-box {
+                &.user {
+                    text-align: right;
+                }
+            }
+
+            p,
+            li,
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                margin: s.$small 0;
+            }
+
+            code {
+                background-color: c.$gray-dark;
+                border-radius: s.$x-small;
+                padding: 0 s.$x-small;
+            }
+
+            .cm-container {
+                width: calc(100% + 2 * s.$small);
+                position: relative;
+                margin: 0 calc(0px - s.$small);
+
+                .actions {
+                    z-index: 10;
+                    position: absolute;
+                    right: s.$small;
+                    top: s.$small;
+                    display: flex;
+                    gap: s.$x-small;
+                }
+            }
+        }
+    }
+
+    .provider-and-model {
+        display: flex;
+        flex-direction: column;
+        gap: s.$small;
+        width: 100%;
+        padding: s.$medium;
+        max-width: 400px;
+        margin: 0 auto;
+        > div {
+            &:last-child {
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+    }
+
+    .agent-provider {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: s.$x-small;
+        .infos {
+            > div {
+                &:first-child {
+                    font-weight: bold;
+                }
+                &:last-child {
+                    font-size: t.$small;
+                }
+            }
         }
     }
 }

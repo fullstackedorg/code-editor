@@ -1,163 +1,144 @@
-import { languageHighlightExtension } from "../codemirror/languages";
-import { createCmView } from "../codemirror/view";
-import Editor from "../editor";
-import { inlineSuggestion } from "codemirror-extension-inline-suggestion";
-import { EditorState } from "@codemirror/state";
 import { Button } from "@fullstacked/ui";
-import { formatContents } from "./prettier";
-
-type WorkspaceFile = {
-    name: string;
-    tab: HTMLElement;
-    view: ReturnType<typeof createCmView>;
-};
+import Editor from "../editor";
+import { WorkspaceItem } from "./views";
+import { Code } from "./views/code";
+import { Image } from "./views/image";
 
 export function createWorkspace(editorInstance: Editor) {
-    let currentFile: WorkspaceFile = null;
+    const items: {
+        workspaceItem: WorkspaceItem;
+        tab: HTMLLIElement;
+    }[] = [];
+    let currentItem: (typeof items)[0] = null;
+    const te = new TextEncoder();
+    const td = new TextDecoder();
+
+    WorkspaceItem.editorInstance = editorInstance;
 
     const container = document.createElement("div");
     container.classList.add("workspace");
-
-    const files: WorkspaceFile[] = [];
-
     const tabs = document.createElement("ul");
     const viewContainer = document.createElement("div");
-    viewContainer.classList.add("workspace-view");
 
     container.append(tabs, viewContainer);
 
-    const getAutocomplete = async (state: EditorState) => {
-        const text = state.doc.toString();
-        const cursor = state.selection.main.head;
-        const prefix = text.slice(0, cursor);
-        const suffix = text.slice(cursor) || " \n";
-        const response = await editorInstance
-            .getAgent()
-            .complete(prefix, suffix);
-        return response;
-    };
+    const add = (workspaceItem: WorkspaceItem) => {
+        let item = items.find((i) => i.workspaceItem.equals(workspaceItem));
 
-    const get = (name: string) => {
-        return files.find((f) => f.name === name)?.view.value;
-    };
-
-    const open = (file: WorkspaceFile) => {
-        if (!file) return;
-        if (currentFile) {
-            currentFile.view.scroll.stash();
-        }
-        files.forEach((f) =>
-            f === file
-                ? f.tab.classList.add("active")
-                : f.tab.classList.remove("active"),
-        );
-        Array.from(viewContainer.children).forEach((c) => c.remove());
-        viewContainer.append(file.view.container);
-        currentFile = file;
-        currentFile.view.scroll.restore();
-    };
-
-    const add = (name: string, contents: string) => {
-        let file = files.find((f) => f.name === name);
-
-        if (!file) {
-            const tab = createTab(name, () => open(file), remove);
-            tabs.append(tab);
-            const view = createCmView({
-                contents,
-                extensions: [
-                    inlineSuggestion({
-                        fetchFn: getAutocomplete,
-                        delay: 500,
-                    }),
-                    ...(editorInstance.opts.codemirrorExtraExtensions?.(name) ||
-                        []),
-                ],
-            });
-            file = {
-                name,
-                tab,
-                view,
+        if (!item) {
+            item = {
+                workspaceItem,
+                tab: createTab(
+                    workspaceItem,
+                    () => setView(workspaceItem),
+                    () => close(workspaceItem),
+                ),
             };
-            files.push(file);
-
-            const fileExtension = name.split(".").pop();
-            languageHighlightExtension(fileExtension).then(view.addExtension);
-        } else {
-            file.view.replaceContents(contents);
+            tabs.append(item.tab);
+            items.push(item);
         }
 
-        open(file);
+        setView(workspaceItem);
     };
 
-    const update = (name: string, contents: string) => {
-        const indexOf = files.findIndex((f) => f.name === name);
+    const setView = (workspaceItem: WorkspaceItem) => {
+        const item = items.find((i) => i.workspaceItem.equals(workspaceItem));
+        if (!item) return;
+        currentItem?.workspaceItem.stash();
+        currentItem?.tab.classList.remove("active");
+        currentItem?.workspaceItem.view.remove();
+        item.tab.classList.add("active");
+        viewContainer.append(item.workspaceItem.view);
+        currentItem = item;
+        currentItem.tab.scrollIntoView();
+        item.workspaceItem.restore();
+    };
+
+    const close = (workspaceItem: WorkspaceItem) => {
+        const indexOf = items.findIndex((i) =>
+            i.workspaceItem.equals(workspaceItem),
+        );
         if (indexOf === -1) return;
-        files.at(indexOf).view.replaceContents(contents);
-    };
-
-    const remove = (name: string) => {
-        const indexOf = files.findIndex((f) => f.name === name);
-        if (indexOf === -1) return;
-        const [file] = files.splice(indexOf, 1);
-
-        if (file === currentFile) {
-            currentFile = null;
-            open(files.at(indexOf) || files.at(-1));
+        const item = items.at(indexOf);
+        item.tab.remove();
+        item.workspaceItem.view.remove();
+        item.workspaceItem.destroy();
+        items.splice(indexOf, 1);
+        if (currentItem === item) {
+            currentItem = null;
+            setView(
+                items.at(indexOf)?.workspaceItem || items.at(-1)?.workspaceItem,
+            );
         }
-
-        file.tab.remove();
-        file.view.remove();
-    };
-
-    const format = async (name: string) => {
-        const file = files.find((f) => f.name === name);
-        if (!file) return;
-        const formatted = await formatContents(name, file.view.value);
-        if (formatted !== file.view.value) {
-            file.view.replaceContents(formatted);
-        }
-    };
-
-    const goTo = (name: string, pos: number) => {
-        const file = files.find((f) => f.name === name);
-        if (!file) return;
-        open(file);
-        file.view.editorView.dispatch({
-            selection: { anchor: pos, head: pos },
-        });
     };
 
     return {
         container,
-        files: {
-            current: () => currentFile.name,
-            get,
+        api: {
+            get currentItem() {
+                return currentItem;
+            },
             add,
-            update,
-            remove,
-            goTo,
-            format,
+            addFile(name: string, contents: Uint8Array | string) {
+                const fileExtension = name.split(".").pop();
+
+                if (!fileExtension || codeExtensions.includes(fileExtension)) {
+                    contents =
+                        contents instanceof Uint8Array
+                            ? td.decode(contents)
+                            : contents;
+
+                    add(new Code(name, contents));
+                } else if (imageExtensions.includes(fileExtension)) {
+                    contents =
+                        contents instanceof Uint8Array
+                            ? contents
+                            : te.encode(contents);
+
+                    add(new Image(name, contents));
+                } else {
+                }
+            },
+            close,
         },
     };
 }
 
 function createTab(
-    name: string,
-    open: () => void,
-    remove: (name: string) => void,
+    item: WorkspaceItem,
+    onclick: () => void,
+    onclose: () => void,
 ) {
     const tab = document.createElement("li");
-    tab.innerText = name;
-    tab.onclick = () => open();
-    const closeButton = Button({
-        iconLeft: "Close",
+    const close = Button({
+        iconRight: "Close",
         style: "icon-small",
     });
-    tab.append(closeButton);
-    closeButton.onclick = (e) => {
+    close.onclick = (e) => {
         e.stopPropagation();
-        remove(name);
+        onclose();
     };
+    tab.append(item.icon(), item.name(), close);
+    tab.onclick = onclick;
     return tab;
 }
+
+const codeExtensions = [
+    "js",
+    "mjs",
+    "cjs",
+    "jsx",
+    "ts",
+    "tsx",
+    "html",
+    "xml",
+    "svg",
+    "css",
+    "scss",
+    "sass",
+    "json",
+    "liquid",
+    "md",
+];
+
+const imageExtensions = ["jpg", "jpeg", "png", "webp", "bmp", "gif"];

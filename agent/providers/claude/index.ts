@@ -44,9 +44,9 @@ export class Claude extends AgentProvider<ClaudeConfiguration, Anthropic> {
 
         return [apiKeyInput.container];
     }
-    async chat(messages: AgentConversationMessages) {
+    async chat(messages: AgentConversationMessages, model: string) {
         const response = await this.client.messages.create({
-            model: this.config?.models?.chat || this.defaultModels.chat,
+            model,
             max_tokens: 8192,
             messages: messages.map((m) => ({
                 role: m.role === "agent" ? "assistant" : m.role,

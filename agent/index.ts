@@ -1,15 +1,21 @@
 import { providers } from "./providers";
 import Editor from "../editor";
-import { createConfigure } from "./configure";
-import { createPrompt } from "./prompt";
-import { createConversation } from "./conversation";
-import { AGENT_USE, AgentProviderGeneric } from "./providers/agentProvider";
+import { createConfigurator } from "./configure";
+import {
+    AgentConversationMessages,
+    AgentProvider,
+    AgentProviderGeneric,
+} from "./providers/agentProvider";
+
+export type ProviderAndModel = {
+    provider: AgentProviderGeneric;
+    model: string;
+};
 
 export function createAgent(editorInstance: Editor) {
-    const currentProviders: { [key: string]: AgentProviderGeneric } = {};
-    let configure: ReturnType<typeof createConfigure>;
-    let conversation: ReturnType<typeof createConversation>;
-    let prompt: ReturnType<typeof createPrompt>;
+    AgentProvider.editorInstance = editorInstance;
+
+    let configurator: ReturnType<typeof createConfigurator>;
 
     const configurations = editorInstance.opts.agentConfigurations;
     if (configurations?.length) {
@@ -19,102 +25,90 @@ export function createAgent(editorInstance: Editor) {
             ) as AgentProviderGeneric;
             const { uses, ...config } = configWithUses;
             provider?.configure(config);
-            uses?.forEach((u) => (currentProviders[u] = provider));
+            uses?.forEach(
+                (u) => (AgentProvider.lastUsedProviders[u] = provider),
+            );
         }
     }
 
+    const getConfiguredProviders = () => {
+        return providers.filter(({ client }) => !!client);
+    };
+
     return {
-        get configure() {
-            if (!configure) {
-                configure = createConfigure(
-                    editorInstance.opts?.agentUses || ["chat"],
-                    () => editorInstance.updatedAgentConfiguration(),
-                    () => currentProviders,
-                    (provider: AgentProviderGeneric, use: AGENT_USE) => {
-                        currentProviders[use] = provider;
-                        console.log(use, provider);
-                        editorInstance.updatedAgentConfiguration();
-                    },
+        get configurator() {
+            if (!configurator) {
+                configurator = createConfigurator(() =>
+                    editorInstance.updatedAgentConfiguration(),
                 );
             }
 
-            return configure;
-        },
-        get conversation() {
-            if (!conversation) {
-                conversation = createConversation(editorInstance);
-            }
-
-            return conversation.container;
-        },
-        get prompt() {
-            if (!prompt) {
-                prompt = createPrompt(editorInstance);
-            }
-
-            return prompt;
+            return configurator;
         },
 
         api: {
             get configurations() {
-                return providers
-                    .filter(({ client }) => !!client)
-                    .map((p) => {
-                        const uses = [];
+                return getConfiguredProviders().map((p) => {
+                    const uses = [];
 
-                        Object.entries(currentProviders).forEach(([u, pp]) => {
+                    Object.entries(AgentProvider.lastUsedProviders).forEach(
+                        ([u, pp]) => {
                             if (pp === p) {
                                 uses.push(u);
                             }
-                        });
+                        },
+                    );
 
-                        return {
-                            uses,
-                            ...p.config,
-                        };
-                    });
+                    return {
+                        uses,
+                        ...p.config,
+                    };
+                });
             },
-            complete(prompt: string, suffix: string) {
-                const completionProvider = currentProviders?.["completion"];
-                if (!completionProvider) return;
-                return completionProvider.completion(prompt, suffix);
+            get providers() {
+                return getConfiguredProviders();
             },
-            ask(text: string, chat: boolean) {
-                const chatProvider = currentProviders?.["chat"];
-                if (!chatProvider) return;
+            complete(
+                prompt: string,
+                suffix: string,
+                opts?: Partial<ProviderAndModel>,
+            ) {
+                const provider =
+                    opts?.provider ||
+                    getConfiguredProviders().find((p) => !!p.completion);
 
-                if (chat) {
-                    conversation?.addUserMessage(text);
-                    chatProvider
-                        .chat(
-                            conversation?.messages || [
-                                {
-                                    role: "user",
-                                    content: text,
-                                },
-                            ],
-                        )
-                        .then((stream) =>
-                            conversation?.addAgentMessage(
-                                stream,
-                                chatProvider.name,
-                            ),
-                        );
-                } else {
-                    return new Promise(async (resolve) => {
-                        const stream = await chatProvider.chat([
-                            {
-                                role: "user",
-                                content: text,
-                            },
-                        ]);
-                        let answer = "";
-                        for await (const chunk of stream) {
-                            answer += chunk;
-                        }
-                        resolve(answer);
-                    });
+                return provider.completion(
+                    prompt,
+                    suffix,
+                    opts?.model ||
+                        (provider.defaultModels as Record<string, string>)
+                            .completion,
+                );
+            },
+            ask(
+                messages: AgentConversationMessages,
+                stream: boolean,
+                opts?: Partial<ProviderAndModel>,
+            ) {
+                const provider =
+                    opts?.provider ||
+                    getConfiguredProviders().find((p) => !!p.chat);
+
+                const chatResponse = provider.chat(
+                    messages,
+                    opts?.model || provider.defaultModels.chat,
+                );
+                if (stream) {
+                    return chatResponse;
                 }
+                return new Promise(async (resolve) => {
+                    let fullTextResponse = "";
+                    const stream = await chatResponse;
+                    for await (const chunk of stream) {
+                        fullTextResponse += chunk;
+                    }
+                    resolve(fullTextResponse);
+                });
             },
         },
     };

@@ -46,9 +46,9 @@ export class DeepSeek extends AgentProvider<DeepSeekConfiguration, openai> {
 
         return [apiKeyInput.container];
     }
-    async chat(messages: AgentConversationMessages) {
+    async chat(messages: AgentConversationMessages, model: string) {
         const response = await this.client.chat.completions.create({
-            model: this.config.models?.chat || this.defaultModels.chat,
+            model,
             messages: messages.map((m) => ({
                 role: m.role === "agent" ? "assistant" : m.role,
                 content: m.content,
@@ -81,7 +81,7 @@ export class DeepSeek extends AgentProvider<DeepSeekConfiguration, openai> {
     }
 
     betaClient: openai = null;
-    async completion(prompt: string, suffix: string) {
+    async completion(prompt: string, suffix: string, model: string) {
         if (!this.betaClient) {
             this.betaClient = new openai({
                 apiKey: this.config.apiKey,
@@ -92,10 +92,10 @@ export class DeepSeek extends AgentProvider<DeepSeekConfiguration, openai> {
         }
 
         const response = await this.betaClient.completions.create({
-            model: this.config.models?.completion || this.defaultModels.completion,
+            model,
             prompt,
             suffix,
-            stream: false
+            stream: false,
         });
 
         return response.choices.at(0)?.text;

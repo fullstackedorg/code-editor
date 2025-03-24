@@ -1,13 +1,12 @@
 import { Extension } from "@codemirror/state";
 import { createWorkspace } from "./workspace";
-import { createAgent } from "./agent";
+import { createAgent, ProviderAndModel } from "./agent";
 import {
-    AGENT_USE,
     AgentConfigWithUses,
+    AgentConversationMessages,
 } from "./agent/providers/agentProvider";
 
 type EditorOpts = {
-    agentUses?: AGENT_USE[];
     agentConfigurations?: AgentConfigWithUses[];
     codemirrorExtraExtensions?(filename: string): Extension[];
 };
@@ -32,15 +31,11 @@ export default class Editor extends EventTarget {
         }
         return this.workspace.container;
     }
-    hasWorkspace() {
-        return !!this.workspace;
-    }
-
-    getAgentElement(e: "configure" | "conversation" | "prompt") {
+    get agentConfigurator() {
         if (this.agent === undefined) {
             this.agent = createAgent(this);
         }
-        return this.agent[e];
+        return this.agent.configurator;
     }
 
     addEventListener(
@@ -66,12 +61,23 @@ export default class Editor extends EventTarget {
         }
 
         return this.agent.api as Editor["agent"]["api"] & {
-            ask(text: string, chat: false): Promise<string>;
-            ask(text: string, chat: true): void;
-        }
+            ask(
+                messages: AgentConversationMessages,
+                stream: false,
+                opts?: Partial<ProviderAndModel>,
+            ): Promise<string>;
+            ask(
+                messages: AgentConversationMessages,
+                stream: true,
+                opts?: Partial<ProviderAndModel>,
+            ): Promise<AsyncIterable<string>>;
+        };
     }
+    getWorkspace() {
+        if (this.workspace === undefined) {
+            this.workspace = createWorkspace(this);
+        }
 
-    getWorkspaceFiles(){
-        return this.workspace?.files
+        return this.workspace.api;
     }
 }
