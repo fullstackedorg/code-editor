@@ -1,12 +1,15 @@
 import { WorkspaceItem, WorkspaceItemType } from ".";
+import { Code, createDevIcon, loadSetiFont } from "./code";
 
 export class Image extends WorkspaceItem {
     type: WorkspaceItemType.image;
 
     filename: string;
+    url: string;
     constructor(filename: string, contents: Uint8Array) {
         super();
         this.filename = filename;
+        this.url = URL.createObjectURL(new Blob([contents]));
     }
 
     equals(item: Image) {
@@ -14,7 +17,12 @@ export class Image extends WorkspaceItem {
     }
 
     icon() {
-        return document.createElement("div");
+        if (!Code.loadedSetiFont) {
+            Code.loadedSetiFont = true;
+            loadSetiFont();
+        }
+
+        return createDevIcon(this.filename);
     }
     name() {
         return this.filename;
@@ -22,7 +30,14 @@ export class Image extends WorkspaceItem {
     stash() {}
     restore() {}
     render() {
-        return document.createElement("div");
+        const container = document.createElement("div");
+        container.classList.add("workspace-image-view");
+        const image = document.createElement("img");
+        image.src = this.url;
+        container.append(image);
+        return container;
     }
-    destroy() {}
+    destroy() {
+        URL.revokeObjectURL(this.url);
+    }
 }

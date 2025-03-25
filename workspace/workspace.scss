@@ -132,6 +132,19 @@
         }
     }
 
+    .workspace-image-view {
+        height: 100%;
+        width: 100%;
+        padding: s.$medium;
+        > img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+            margin: 0 auto;
+            display: block;
+        }
+    }
+
     .provider-and-model {
         display: flex;
         flex-direction: column;

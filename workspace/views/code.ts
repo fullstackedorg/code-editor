@@ -118,7 +118,7 @@ export class Code extends WorkspaceItem {
     }
 }
 
-function createDevIcon(filename: string) {
+export function createDevIcon(filename: string) {
     const container = document.createElement("div");
     container.classList.add("dev-icon");
     container.classList.add(filenameToDevIconClass(filename));
@@ -165,7 +165,7 @@ function filenameToDevIconClass(filename: string) {
     }
 }
 
-async function loadSetiFont() {
+export async function loadSetiFont() {
     const setiFont = new FontFace(
         "Dev Icon",
         await fs.readFile("/workspace/dev-icon/seti.woff"),

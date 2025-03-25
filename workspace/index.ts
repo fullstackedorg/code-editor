@@ -1,6 +1,6 @@
 import { Button } from "@fullstacked/ui";
 import Editor from "../editor";
-import { WorkspaceItem } from "./views";
+import { WorkspaceItem, WorkspaceItemType } from "./views";
 import { Code } from "./views/code";
 import { Image } from "./views/image";
 
@@ -31,7 +31,7 @@ export function createWorkspace(editorInstance: Editor) {
                 tab: createTab(
                     workspaceItem,
                     () => setView(workspaceItem),
-                    () => close(workspaceItem),
+                    () => remove(workspaceItem),
                 ),
             };
             tabs.append(item.tab);
@@ -54,7 +54,7 @@ export function createWorkspace(editorInstance: Editor) {
         item.workspaceItem.restore();
     };
 
-    const close = (workspaceItem: WorkspaceItem) => {
+    const remove = (workspaceItem: WorkspaceItem) => {
         const indexOf = items.findIndex((i) =>
             i.workspaceItem.equals(workspaceItem),
         );
@@ -75,31 +75,57 @@ export function createWorkspace(editorInstance: Editor) {
     return {
         container,
         api: {
-            get currentItem() {
-                return currentItem;
+            item: {
+                get current() {
+                    return currentItem;
+                },
+                add,
+                remove,
             },
-            add,
-            addFile(name: string, contents: Uint8Array | string) {
-                const fileExtension = name.split(".").pop();
+            file: {
+                open(name: string, contents: Uint8Array | string) {
+                    const fileExtension = name.split(".").pop();
 
-                if (!fileExtension || codeExtensions.includes(fileExtension)) {
-                    contents =
-                        contents instanceof Uint8Array
-                            ? td.decode(contents)
-                            : contents;
+                    if (
+                        !fileExtension ||
+                        codeExtensions.includes(fileExtension)
+                    ) {
+                        contents =
+                            contents instanceof Uint8Array
+                                ? td.decode(contents)
+                                : contents;
 
-                    add(new Code(name, contents));
-                } else if (imageExtensions.includes(fileExtension)) {
-                    contents =
-                        contents instanceof Uint8Array
-                            ? contents
-                            : te.encode(contents);
+                        add(new Code(name, contents));
+                    } else if (imageExtensions.includes(fileExtension)) {
+                        contents =
+                            contents instanceof Uint8Array
+                                ? contents
+                                : te.encode(contents);
 
-                    add(new Image(name, contents));
-                } else {
-                }
+                        add(new Image(name, contents));
+                    } else {
+                    }
+                },
+                goTo(name: string, pos: number) {
+                    
+                },
+                close(name: string) {
+                    const item = items.find((i) => {
+                        const type = i.workspaceItem.type;
+                        if (
+                            type !== WorkspaceItemType.code &&
+                            type !== WorkspaceItemType.image
+                        ) {
+                            return false;
+                        }
+                        return (
+                            (i.workspaceItem as Code | Image).filename === name
+                        );
+                    });
+                    if (!item) return;
+                    remove(item.workspaceItem);
+                },
             },
-            close,
         },
     };
 }

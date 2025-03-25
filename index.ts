@@ -1,9 +1,10 @@
 import fs from "fs";
 import Editor from "./editor";
 import eruda from "eruda";
-import { AgentConfiguration } from "./agent/providers/agentProvider";
+import { AgentConfigWithUses } from "./agent/providers/agentProvider";
 import { Button } from "@fullstacked/ui";
 import { Chat } from "./workspace/views/chat";
+import { core_fetch2 } from "fetch";
 eruda.init();
 
 if (!(await fs.exists("data"))) {
@@ -11,7 +12,7 @@ if (!(await fs.exists("data"))) {
 }
 
 const agentConfigsFile = "data/agents-config.json";
-let agentConfigurations: AgentConfiguration[] = undefined;
+let agentConfigurations: AgentConfigWithUses[] = undefined;
 if (await fs.exists(agentConfigsFile)) {
     agentConfigurations = JSON.parse(
         await fs.readFile(agentConfigsFile, { encoding: "utf8" }),
@@ -25,7 +26,9 @@ window.addEventListener("keydown", (e) => {
 
     e.preventDefault();
     e.stopPropagation();
-    (codeEditor.getWorkspace()?.currentItem?.workspaceItem as any)?.format?.();
+    (
+        codeEditor.getWorkspace()?.item?.current?.workspaceItem as any
+    )?.format?.();
 });
 
 codeEditor.addEventListener("agent-configuration-update", (e) => {
@@ -43,10 +46,21 @@ const newChatButton = Button({
 });
 
 newChatButton.onclick = () => {
-    codeEditor.getWorkspace().add(new Chat());
+    codeEditor.getWorkspace().item.add(new Chat());
 };
 
-left.append(codeEditor.agentConfigurator, newChatButton);
+const imageButton = Button({
+    text: "Image",
+    iconLeft: "Plus",
+});
+
+imageButton.onclick = async () => {
+    const imageRequest = await core_fetch2("https://fakeimg.pl/600x400");
+    const imageData = new Uint8Array(await imageRequest.arrayBuffer());
+    codeEditor.getWorkspace().file.open("image.jpg", imageData);
+};
+
+left.append(codeEditor.agentConfigurator, newChatButton, imageButton);
 right.append(codeEditor.workspaceElement);
 
 main.append(left, right);

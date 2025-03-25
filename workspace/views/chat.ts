@@ -395,7 +395,7 @@ function createMarkdownStreamRenderer(
                 summarized.split(".").shift().toLowerCase().trim() +
                 "." +
                 languageToFileExtension(lang);
-            editorInstance.getWorkspace().addFile(filename, text);
+            editorInstance.getWorkspace().file.open(filename, text);
         };
         actions.append(createFileButton);
 
