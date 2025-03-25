@@ -4,19 +4,24 @@ export enum WorkspaceItemType {
     code = "code",
     image = "image",
     chat = "chat",
+    binary = "binary",
 }
 
 export abstract class WorkspaceItem {
     static editorInstance: Editor;
     abstract type: WorkspaceItemType;
 
+    name: string
+    constructor(name: string){
+        this.name = name;
+    }
+
     abstract icon(): HTMLElement;
-    abstract name(): string | HTMLElement;
+    abstract title(): string | HTMLElement;
     abstract render(): HTMLElement;
     abstract stash(): void;
     abstract restore(): void;
     abstract destroy(): void;
-    abstract equals(item: WorkspaceItem): boolean;
 
     private element: HTMLElement;
     get view() {

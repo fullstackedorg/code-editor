@@ -4,16 +4,10 @@ import { Code, createDevIcon, loadSetiFont } from "./code";
 export class Image extends WorkspaceItem {
     type: WorkspaceItemType.image;
 
-    filename: string;
     url: string;
     constructor(filename: string, contents: Uint8Array) {
-        super();
-        this.filename = filename;
+        super(filename);
         this.url = URL.createObjectURL(new Blob([contents]));
-    }
-
-    equals(item: Image) {
-        return this.filename === item?.filename;
     }
 
     icon() {
@@ -22,22 +16,29 @@ export class Image extends WorkspaceItem {
             loadSetiFont();
         }
 
-        return createDevIcon(this.filename);
+        return createDevIcon(this.name);
     }
-    name() {
-        return this.filename;
+    title() {
+        return this.name;
     }
     stash() {}
     restore() {}
+
+    image: HTMLImageElement = document.createElement("img");
     render() {
         const container = document.createElement("div");
         container.classList.add("workspace-image-view");
-        const image = document.createElement("img");
-        image.src = this.url;
-        container.append(image);
+        this.image.src = this.url;
+        container.append(this.image);
         return container;
     }
     destroy() {
         URL.revokeObjectURL(this.url);
+    }
+
+    replace(contents: Uint8Array) {
+        this.destroy();
+        this.url = URL.createObjectURL(new Blob([contents]));
+        this.image.src = this.url;
     }
 }

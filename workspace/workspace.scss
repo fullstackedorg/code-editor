@@ -145,6 +145,11 @@
         }
     }
 
+    .workspace-binary-view {
+        padding: s.$medium;
+        text-align: center;
+    }
+
     .provider-and-model {
         display: flex;
         flex-direction: column;

@@ -20,6 +20,7 @@
         "ollama": "^0.5.14",
         "openai": "^4.87.3",
         "prettier": "^3.5.3",
+        "pretty-bytes": "^6.1.1",
         "streaming-markdown": "^0.1.0",
         "zod": "^3.24.2"
     },

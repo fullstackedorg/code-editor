@@ -19,11 +19,9 @@ export class Code extends WorkspaceItem {
 
     type: WorkspaceItemType.code;
 
-    filename: string;
     cmView: ReturnType<typeof createCmView>;
     constructor(filename: string, contents: string) {
-        super();
-        this.filename = filename;
+        super(filename);
         this.cmView = createCmView({
             contents,
             extensions:
@@ -31,13 +29,9 @@ export class Code extends WorkspaceItem {
                     filename,
                 ),
         });
-        languageHighlightExtension(this.filename.split(".").pop()).then((ext) =>
+        languageHighlightExtension(this.name.split(".").pop()).then((ext) =>
             this.cmView.addExtension(ext),
         );
-    }
-
-    equals(item: Code) {
-        return this.filename === item?.filename;
     }
 
     icon() {
@@ -46,10 +40,10 @@ export class Code extends WorkspaceItem {
             loadSetiFont();
         }
 
-        return createDevIcon(this.filename);
+        return createDevIcon(this.name);
     }
-    name() {
-        return this.filename;
+    title() {
+        return this.name;
     }
 
     scroll: { top: number; left: number };
@@ -109,7 +103,7 @@ export class Code extends WorkspaceItem {
 
     async format() {
         const formatted = await formatContents(
-            this.filename,
+            this.name,
             this.cmView.value,
         );
         if (formatted !== this.cmView.value) {

@@ -16,7 +16,6 @@ export const tabWidth = 4;
 export function createCmView(opts: CmViewOpts) {
     const container = document.createElement("div");
     container.classList.add("cm-container");
-    let scroll: { top: number; left: number } = null;
 
     const editorView = new EditorView({
         parent: container,

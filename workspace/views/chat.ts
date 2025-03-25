@@ -21,16 +21,10 @@ export class Chat extends WorkspaceItem {
     static lastProviderUsed: ProviderAndModel = null;
     provider: ProviderAndModel;
 
-    id: string;
-    nameContainer = document.createElement("div");
+    titleContainer = document.createElement("div");
     constructor() {
-        super();
-        this.id = makeid(6);
-        this.nameContainer.innerText = "New Chat";
-    }
-
-    equals(item: Chat) {
-        return this.id === item?.id;
+        super(makeid(6));
+        this.titleContainer.innerText = "New Chat";
     }
 
     icon() {
@@ -39,8 +33,8 @@ export class Chat extends WorkspaceItem {
         chatIconContainer.append(Icon("Glitter"));
         return chatIconContainer;
     }
-    name() {
-        return this.nameContainer;
+    title() {
+        return this.titleContainer;
     }
 
     scroll: { top: number; left: number };
@@ -56,7 +50,7 @@ export class Chat extends WorkspaceItem {
             WorkspaceItem.editorInstance,
             provider,
             (provider) => (Chat.lastProviderUsed = provider),
-            (title) => (this.nameContainer.innerText = title),
+            (title) => (this.titleContainer.innerText = title),
         );
     }
     destroy() {}
