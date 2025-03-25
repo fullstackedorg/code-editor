@@ -175,6 +175,9 @@ export function createWorkspace(editorInstance: Editor) {
                             break;
                     }
                 },
+                isOpen(name: string) {
+                    return !!items.find((i) => i.workspaceItem.name === name);
+                },
                 goTo(name: string, pos: number) {
                     const item = items.find(
                         (i) => i.workspaceItem.name === name,
