@@ -1,5 +1,6 @@
 {
     "name": "@fullstacked/code-editor",
+    "version": "0.0.0",
     "main": "editor.ts",
     "dependencies": {
         "@anthropic-ai/sdk": "^0.39.0",
