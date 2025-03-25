@@ -37,7 +37,7 @@ export class Code extends WorkspaceItem {
     icon() {
         if (!Code.loadedSetiFont) {
             Code.loadedSetiFont = true;
-            loadSetiFont();
+            loadSetiFont(WorkspaceItem.editorInstance.opts.setiFontLocation);
         }
 
         return createDevIcon(this.name);
@@ -102,10 +102,7 @@ export class Code extends WorkspaceItem {
     }
 
     async format() {
-        const formatted = await formatContents(
-            this.name,
-            this.cmView.value,
-        );
+        const formatted = await formatContents(this.name, this.cmView.value);
         if (formatted !== this.cmView.value) {
             this.cmView.replaceContents(formatted);
         }
@@ -159,10 +156,12 @@ function filenameToDevIconClass(filename: string) {
     }
 }
 
-export async function loadSetiFont() {
+export async function loadSetiFont(fontLocation: string) {
+    if (fontLocation === null) return;
+
     const setiFont = new FontFace(
-        "Dev Icon",
-        await fs.readFile("/workspace/dev-icon/seti.woff"),
+        "Dev Icons",
+        await fs.readFile(fontLocation || "/workspace/dev-icons/seti.woff"),
     );
     await setiFont.load();
     document.fonts.add(setiFont);
@@ -212,14 +211,10 @@ function renderCodeView(
             container.append(top);
         }
 
-        const scrollable = document.createElement("div");
-        scrollable.classList.add("scrollable");
-        container.append(scrollable);
-
         const overscroll = document.createElement("div");
         overscroll.classList.add("cm-overscroll");
 
-        scrollable.append(cmView.container, overscroll);
+        container.append(cmView.container, overscroll);
     };
     renderView();
 

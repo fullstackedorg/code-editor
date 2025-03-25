@@ -15,8 +15,6 @@ export type ProviderAndModel = {
 export function createAgent(editorInstance: Editor) {
     AgentProvider.editorInstance = editorInstance;
 
-    let configurator: ReturnType<typeof createConfigurator>;
-
     const configurations = editorInstance.opts.agentConfigurations;
     if (configurations?.length) {
         for (const configWithUses of configurations) {
@@ -37,13 +35,9 @@ export function createAgent(editorInstance: Editor) {
 
     return {
         get configurator() {
-            if (!configurator) {
-                configurator = createConfigurator(() =>
-                    editorInstance.updatedAgentConfiguration(),
-                );
-            }
-
-            return configurator;
+            return createConfigurator(() =>
+                editorInstance.updatedAgentConfiguration(),
+            );
         },
 
         api: {

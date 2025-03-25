@@ -39,11 +39,10 @@ main {
 
             max-width: 100%;
             overflow: hidden;
-&:first-child{
-    height: max-content;
-    max-height: max-content;
-}
-            
+            &:first-child {
+                height: max-content;
+                max-height: max-content;
+            }
         }
     }
 }

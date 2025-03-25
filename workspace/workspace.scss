@@ -1,7 +1,7 @@
 @use "../node_modules/@fullstacked/ui/values/spacing.scss" as s;
 @use "../node_modules/@fullstacked/ui/values/colors.scss" as c;
 @use "../node_modules/@fullstacked/ui/values/typography.scss" as t;
-@use "./dev-icon/dev-icon.scss";
+@use "./dev-icons/dev-icons.scss";
 
 .workspace {
     height: 100%;
@@ -56,14 +56,8 @@
 
     .workspace-view-code {
         flex: 1;
+        overflow: auto;
         height: 100%;
-        display: flex;
-        flex-direction: column;
-        .scrollable {
-            overflow: auto;
-            flex: 1;
-            height: 100%;
-        }
         .cm-overscroll {
             height: calc(100% - 25px);
         }
@@ -171,6 +165,8 @@
         justify-content: space-between;
         align-items: center;
         padding: s.$x-small;
+        position: sticky;
+        left: 0;
         .infos {
             > div {
                 &:first-child {

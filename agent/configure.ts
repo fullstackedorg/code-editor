@@ -18,8 +18,6 @@ function configureAgentProviders(
 ) {
     const container = document.createElement("div");
 
-    container.innerHTML = `<h3>Configure agent providers</h3>`;
-
     let selectedProvider: AgentProviderGeneric = null;
 
     const inputSelect = InputSelect({

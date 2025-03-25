@@ -9,6 +9,7 @@ import {
 type EditorOpts = {
     agentConfigurations?: AgentConfigWithUses[];
     codemirrorExtraExtensions?(filename: string): Extension[];
+    setiFontLocation?: string;
 };
 
 type AgentConfigurationUpdate = Event & {
@@ -20,15 +21,13 @@ export default class Editor extends EventTarget {
     private agent: ReturnType<typeof createAgent>;
     opts: EditorOpts;
 
-    constructor(opts: EditorOpts) {
+    constructor(opts?: EditorOpts) {
         super();
         this.opts = opts;
     }
 
     get workspaceElement() {
-        if (this.workspace === undefined) {
-            this.workspace = createWorkspace(this);
-        }
+        this.workspace = createWorkspace(this);
         return this.workspace.container;
     }
     get agentConfigurator() {
@@ -74,11 +73,7 @@ export default class Editor extends EventTarget {
         };
     }
     getWorkspace() {
-        if (this.workspace === undefined) {
-            this.workspace = createWorkspace(this);
-        }
-
-        return this.workspace.api;
+        return this.workspace?.api;
     }
 }
 

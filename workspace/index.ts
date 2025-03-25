@@ -80,6 +80,9 @@ export function createWorkspace(editorInstance: Editor) {
     return {
         container,
         api: {
+            clear() {
+                items.forEach((i) => remove(i.workspaceItem));
+            },
             item: {
                 get current() {
                     return currentItem;
