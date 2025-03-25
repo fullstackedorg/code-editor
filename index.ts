@@ -1,9 +1,7 @@
 import fs from "fs";
-import Editor from "./editor";
+import Editor, { Chat, AgentConfigWithUses } from "./editor";
 import eruda from "eruda";
-import { AgentConfigWithUses } from "./agent/providers/agentProvider";
 import { Button } from "@fullstacked/ui";
-import { Chat } from "./workspace/views/chat";
 import { core_fetch2 } from "fetch";
 eruda.init();
 

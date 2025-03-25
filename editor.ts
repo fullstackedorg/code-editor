@@ -81,3 +81,6 @@ export default class Editor extends EventTarget {
         return this.workspace.api;
     }
 }
+
+export { Chat } from "./workspace/views/chat";
+export { AgentConfigWithUses } from "./agent/providers/agentProvider";
