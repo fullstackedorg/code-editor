@@ -48,12 +48,13 @@ export class Chat extends WorkspaceItem {
         this.conversationContainer.scrollTo(0, this.scrollTop);
     }
 
+    prompt: (message: string) => void;
     render() {
         const provider =
             Chat.lastProviderUsed ||
             getFirstProviderAvailable("chat", WorkspaceItem.editorInstance);
 
-        const { container, conversation } = createChatView(
+        const { container, conversation, promptAgent } = createChatView(
             WorkspaceItem.editorInstance,
             provider,
             (provider) => (Chat.lastProviderUsed = provider),
@@ -61,7 +62,7 @@ export class Chat extends WorkspaceItem {
         );
 
         this.conversationContainer = conversation;
-
+        this.prompt = promptAgent;
         return container;
     }
     destroy() {}
@@ -187,6 +188,14 @@ function createChatView(
         updateTitle();
     };
 
+    const promptAgent = (message: string) => {
+        addUserMessage(message);
+        const agentResponse = editorInstance
+            .getAgent()
+            .ask(messages, true, provider);
+        addAgentMessage(agentResponse);
+    };
+
     const renderConversationView = () => {
         clearContainer();
 
@@ -223,20 +232,20 @@ function createChatView(
         form.append(prompt.container);
         form.onsubmit = (e) => {
             e.preventDefault();
-            addUserMessage(prompt.input.value);
-            prompt.input.value = "";
+            promptAgent(prompt.input.value);
 
-            const agentResponse = editorInstance
-                .getAgent()
-                .ask(messages, true, provider);
-            addAgentMessage(agentResponse);
+            prompt.input.value = "";
         };
 
         container.append(top, conversation, form);
     };
 
     renderConversationView();
-    return { container, conversation };
+    return {
+        container,
+        conversation,
+        promptAgent,
+    };
 }
 
 export function renderProviderAndModelForm(
