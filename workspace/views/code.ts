@@ -73,7 +73,6 @@ export class Code extends WorkspaceItem {
     restore() {
         if (!this.scroll) return;
         this.cmView.container.parentElement.scrollTo(this.scroll);
-        this.cmView.editorView.focus();
     }
 
     static lastProviderUsed: ProviderAndModel = null;
