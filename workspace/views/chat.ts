@@ -25,6 +25,9 @@ export class Chat extends WorkspaceItem {
     constructor() {
         super(makeid(6));
         this.titleContainer.innerText = "New Chat";
+        
+        // make sure opts are loaded
+        WorkspaceItem.editorInstance.getAgent();
     }
 
     loadContents: undefined;

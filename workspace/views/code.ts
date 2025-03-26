@@ -79,7 +79,7 @@ export class Code extends WorkspaceItem {
         return createDevIcon(this.name);
     }
     title() {
-        this.titleContainer.innerText = this.name;
+        this.titleContainer.innerText = this.name.split("/").pop();
         return this.titleContainer;
     }
 

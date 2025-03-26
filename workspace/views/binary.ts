@@ -54,7 +54,7 @@ export class Binary extends WorkspaceItem {
         return createDevIcon(this.name);
     }
     title() {
-        return this.name;
+        return this.name.split("/").pop();
     }
     stash() {}
     restore() {}
