@@ -13,8 +13,8 @@ export class Binary extends WorkspaceItem {
         const workspace = WorkspaceItem.editorInstance.getWorkspace();
         workspace.item.remove(this);
         const codeView = new Code(this.name);
-        codeView.init(contents);
         workspace.item.add(codeView);
+        return codeView.init(contents);
     }
 
     loadContents(contents: string | Uint8Array) {
