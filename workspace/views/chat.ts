@@ -19,13 +19,15 @@ export class Chat extends WorkspaceItem {
     type = WorkspaceItemType.chat;
 
     static lastProviderUsed: ProviderAndModel = null;
-    provider: ProviderAndModel;
 
     titleContainer = document.createElement("div");
     constructor() {
         super(makeid(6));
         this.titleContainer.innerText = "New Chat";
     }
+
+    loadContents: undefined;
+    replaceContents: undefined;
 
     icon() {
         const chatIconContainer = document.createElement("div");
@@ -37,21 +39,30 @@ export class Chat extends WorkspaceItem {
         return this.titleContainer;
     }
 
-    scroll: { top: number; left: number };
-    stash() {}
-    restore() {}
+    scrollTop: number;
+    conversationContainer: HTMLDivElement;
+    stash() {
+        this.scrollTop = this.conversationContainer.scrollTop;
+    }
+    restore() {
+        this.conversationContainer.scrollTo(0, this.scrollTop);
+    }
 
     render() {
         const provider =
             Chat.lastProviderUsed ||
             getFirstProviderAvailable("chat", WorkspaceItem.editorInstance);
 
-        return createChatView(
+        const { container, conversation } = createChatView(
             WorkspaceItem.editorInstance,
             provider,
             (provider) => (Chat.lastProviderUsed = provider),
             (title) => (this.titleContainer.innerText = title),
         );
+
+        this.conversationContainer = conversation;
+
+        return container;
     }
     destroy() {}
 }
@@ -225,7 +236,7 @@ function createChatView(
     };
 
     renderConversationView();
-    return container;
+    return { container, conversation };
 }
 
 export function renderProviderAndModelForm(
@@ -418,7 +429,7 @@ function copyToClip(text: string) {
     return result;
 }
 
-function makeid(length) {
+function makeid(length: number) {
     let result = "";
     const characters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

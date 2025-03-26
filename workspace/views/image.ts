@@ -1,21 +1,21 @@
-import { WorkspaceItem, WorkspaceItemType } from ".";
-import { Code, createDevIcon, loadSetiFont } from "./code";
+import { Contents, WorkspaceItem, WorkspaceItemType } from ".";
+import { strToUint8 } from "../contents";
+import { createDevIcon } from "./code";
 
 export class Image extends WorkspaceItem {
     type: WorkspaceItemType.image;
 
-    url: string;
-    constructor(filename: string, contents: Uint8Array) {
-        super(filename);
-        this.url = URL.createObjectURL(new Blob([contents]));
+    image: HTMLImageElement = document.createElement("img");
+
+    loadContents(contents: string | Uint8Array) {
+        const data = strToUint8(contents);
+        const fileExtension = this.name.split(".").pop();
+        this.image.src = URL.createObjectURL(
+            new Blob([data], { type: `image/${fileExtension}` }),
+        );
     }
 
     icon() {
-        if (!Code.loadedSetiFont) {
-            Code.loadedSetiFont = true;
-            loadSetiFont();
-        }
-
         return createDevIcon(this.name);
     }
     title() {
@@ -24,21 +24,19 @@ export class Image extends WorkspaceItem {
     stash() {}
     restore() {}
 
-    image: HTMLImageElement = document.createElement("img");
     render() {
         const container = document.createElement("div");
         container.classList.add("workspace-image-view");
-        this.image.src = this.url;
         container.append(this.image);
         return container;
     }
     destroy() {
-        URL.revokeObjectURL(this.url);
+        if (!this.image.src) return;
+        URL.revokeObjectURL(this.image.src);
     }
 
-    replace(contents: Uint8Array) {
+    replaceContents(contents: Contents) {
         this.destroy();
-        this.url = URL.createObjectURL(new Blob([contents]));
-        this.image.src = this.url;
+        this.init(contents);
     }
 }

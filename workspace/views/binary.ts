@@ -1,22 +1,56 @@
 import { WorkspaceItem, WorkspaceItemType } from ".";
-import { Code, createDevIcon, loadSetiFont } from "./code";
+import { strToUint8, uint8ToStr } from "../contents";
+import { Code, createDevIcon } from "./code";
 import prettyBytes from "pretty-bytes";
 
 export class Binary extends WorkspaceItem {
     type: WorkspaceItemType.binary;
 
     byteLength: number;
-    constructor(filename: string, byteLength: number) {
-        super(filename);
-        this.byteLength = byteLength;
+    container = document.createElement("div");
+
+    convertToCode(contents: string | Uint8Array) {
+        const workspace = WorkspaceItem.editorInstance.getWorkspace();
+        workspace.item.remove(this);
+        const codeView = new Code(this.name);
+        codeView.init(contents);
+        workspace.item.add(codeView);
+    }
+
+    loadContents(contents: string | Uint8Array) {
+        if (
+            typeof contents === "string" &&
+            contents.length < 1000000 // ~2 mb (string is utf-16)
+        ) {
+            return this.convertToCode(contents);
+        }
+        // test couple first chars if alpha numeric or coding symbols {[(~/ etc.
+        else if (
+            contents instanceof Uint8Array &&
+            contents.byteLength < 2000000 // 2mb
+        ) {
+            const str = uint8ToStr(contents.slice(0, 40));
+            const alphaSymbols = str
+                .slice(0, 10)
+                .split("")
+                .filter(
+                    (char) =>
+                        char.charCodeAt(0) === 10 || // \n
+                        (char.charCodeAt(0) >= 32 && char.charCodeAt(0) <= 126), // symbols and letters
+                );
+            if (alphaSymbols.length > 5 || alphaSymbols.length === str.length) {
+                return this.convertToCode(contents);
+            }
+        }
+
+        this.container.innerText = prettyBytes(strToUint8(contents).byteLength);
+    }
+
+    replaceContents(contents: Uint8Array | string) {
+        this.container.innerText = prettyBytes(strToUint8(contents).byteLength);
     }
 
     icon() {
-        if (!Code.loadedSetiFont) {
-            Code.loadedSetiFont = true;
-            loadSetiFont();
-        }
-
         return createDevIcon(this.name);
     }
     title() {
@@ -25,10 +59,8 @@ export class Binary extends WorkspaceItem {
     stash() {}
     restore() {}
     render() {
-        const container = document.createElement("div");
-        container.classList.add("workspace-binary-view");
-        container.innerText = prettyBytes(this.byteLength);
-        return container;
+        this.container.classList.add("workspace-binary-view");
+        return this.container;
     }
     destroy() {}
 }

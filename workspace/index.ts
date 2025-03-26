@@ -11,8 +11,6 @@ export function createWorkspace(editorInstance: Editor) {
         tab: HTMLLIElement;
     }[] = [];
     let currentItem: (typeof items)[0] = null;
-    const te = new TextEncoder();
-    const td = new TextDecoder();
 
     WorkspaceItem.editorInstance = editorInstance;
 
@@ -91,7 +89,13 @@ export function createWorkspace(editorInstance: Editor) {
                 remove,
             },
             file: {
-                open(name: string, contents: Uint8Array | string) {
+                open(
+                    name: string,
+                    contents:
+                        | Uint8Array
+                        | string
+                        | Promise<string | Uint8Array>,
+                ) {
                     const fileExtension = name.split(".").pop();
                     let itemType: WorkspaceItemType = WorkspaceItemType.binary;
 
@@ -99,35 +103,6 @@ export function createWorkspace(editorInstance: Editor) {
                         itemType = WorkspaceItemType.code;
                     } else if (imageExtensions.includes(fileExtension)) {
                         itemType = WorkspaceItemType.image;
-                    } else {
-                        if (
-                            typeof contents === "string" &&
-                            contents.length < 1000000 // ~2 mb (string is utf-16)
-                        ) {
-                            itemType = WorkspaceItemType.code;
-                        }
-                        // test couple first chars if alpha numeric or coding symbols {[(~/ etc.
-                        else if (
-                            contents instanceof Uint8Array &&
-                            contents.byteLength < 2000000 // 2mb
-                        ) {
-                            const str = td.decode(contents.slice(0, 40));
-                            const alphaSymbols = str
-                                .slice(0, 10)
-                                .split("")
-                                .filter(
-                                    (char) =>
-                                        char.charCodeAt(0) === 10 || // \n
-                                        (char.charCodeAt(0) >= 32 &&
-                                            char.charCodeAt(0) <= 126), // symbols and letters
-                                );
-                            if (
-                                alphaSymbols.length > 5 ||
-                                alphaSymbols.length === str.length
-                            ) {
-                                itemType = WorkspaceItemType.code;
-                            }
-                        }
                     }
 
                     const sameFileOpened = items.find(
@@ -136,47 +111,26 @@ export function createWorkspace(editorInstance: Editor) {
                             i.workspaceItem.name === name,
                     );
 
+                    if (sameFileOpened) {
+                        setView(sameFileOpened.workspaceItem);
+                        return sameFileOpened.workspaceItem.replace(contents);
+                    }
+
+                    let view: WorkspaceItem;
                     switch (itemType) {
                         case WorkspaceItemType.code:
-                            contents =
-                                contents instanceof Uint8Array
-                                    ? td.decode(contents)
-                                    : contents;
-                            if (sameFileOpened) {
-                                (
-                                    sameFileOpened.workspaceItem as Code
-                                ).cmView.replaceContents(contents);
-                                setView(sameFileOpened.workspaceItem);
-                            } else {
-                                add(new Code(name, contents));
-                            }
+                            view = new Code(name);
                             break;
                         case WorkspaceItemType.image:
-                            contents =
-                                contents instanceof Uint8Array
-                                    ? contents
-                                    : te.encode(contents);
-                            if (sameFileOpened) {
-                                (sameFileOpened.workspaceItem as Image).replace(
-                                    contents,
-                                );
-                                setView(sameFileOpened.workspaceItem);
-                            } else {
-                                add(new Image(name, contents));
-                            }
+                            view = new Image(name);
                             break;
                         case WorkspaceItemType.binary:
-                            if (sameFileOpened) {
-                                setView(sameFileOpened.workspaceItem);
-                            } else {
-                                contents =
-                                    contents instanceof Uint8Array
-                                        ? contents
-                                        : te.encode(contents);
-                                add(new Binary(name, contents.byteLength));
-                            }
+                            view = new Binary(name);
                             break;
                     }
+
+                    add(view);
+                    return view.init(contents);
                 },
                 isOpen(name: string) {
                     return !!items.find((i) => i.workspaceItem.name === name);
@@ -190,9 +144,7 @@ export function createWorkspace(editorInstance: Editor) {
                     }
 
                     setView(item.workspaceItem);
-                    (item.workspaceItem as Code).cmView.editorView.dispatch({
-                        selection: { anchor: pos, head: pos },
-                    });
+                    (item.workspaceItem as Code).goTo(pos);
                 },
                 close(name: string) {
                     const item = items.find(
