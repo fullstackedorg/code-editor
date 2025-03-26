@@ -88,8 +88,8 @@
 
             padding: 0 s.$small;
 
-            ul {
-                list-style-type: unset;
+            ul,
+            ol {
                 margin: s.$small 0;
                 padding: 0 0 0 s.$medium;
             }
