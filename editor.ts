@@ -10,6 +10,7 @@ type EditorOpts = {
     agentConfigurations?: AgentConfigWithUses[];
     codemirrorExtraExtensions?(filename: string): Extension[];
     setiFontLocation?: string;
+    validateNewFileName?(suggestedName: string): string;
 };
 
 type AgentConfigurationUpdate = Event & {
@@ -59,21 +60,20 @@ export default class Editor extends EventTarget {
             this.agent = createAgent(this);
         }
 
-        return this.agent.api as Editor["agent"]["api"] & {
-            ask(
-                messages: AgentConversationMessages,
-                stream: false,
-                opts?: Partial<ProviderAndModel>,
-            ): Promise<string>;
-            ask(
-                messages: AgentConversationMessages,
-                stream: true,
-                opts?: Partial<ProviderAndModel>,
-            ): Promise<AsyncIterable<string>>;
-        };
+        return this.agent.api;
     }
     getWorkspace() {
-        return this.workspace?.api;
+        return this.workspace?.api as Editor["workspace"]["api"] & {
+            file: Editor["workspace"]["api"]["file"] & {
+                open(name: string, contents: Uint8Array): void;
+                open(name: string, contents: string): void;
+                open(name: string, contents: Promise<string>): Promise<void>;
+                open(
+                    name: string,
+                    contents: Promise<Uint8Array>,
+                ): Promise<void>;
+            };
+        };
     }
 }
 

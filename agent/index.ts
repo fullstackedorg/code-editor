@@ -33,6 +33,41 @@ export function createAgent(editorInstance: Editor) {
         return providers.filter(({ client }) => !!client);
     };
 
+    function ask(
+        messages: AgentConversationMessages,
+        stream: false,
+        opts?: Partial<ProviderAndModel>,
+    ): Promise<string>;
+    function ask(
+        messages: AgentConversationMessages,
+        stream: true,
+        opts?: Partial<ProviderAndModel>,
+    ): Promise<AsyncIterable<string>>;
+    function ask(
+        messages: AgentConversationMessages,
+        stream: boolean,
+        opts?: Partial<ProviderAndModel>,
+    ) {
+        const provider =
+            opts?.provider || getConfiguredProviders().find((p) => !!p.chat);
+
+        const chatResponse = provider.chat(
+            messages,
+            opts?.model || provider.defaultModels.chat,
+        );
+        if (stream) {
+            return chatResponse;
+        }
+        return new Promise(async (resolve) => {
+            let fullTextResponse = "";
+            const stream = await chatResponse;
+            for await (const chunk of stream) {
+                fullTextResponse += chunk;
+            }
+            resolve(fullTextResponse);
+        });
+    }
+
     return {
         get configurator() {
             return createConfigurator(() =>
@@ -79,31 +114,7 @@ export function createAgent(editorInstance: Editor) {
                             .completion,
                 );
             },
-            ask(
-                messages: AgentConversationMessages,
-                stream: boolean,
-                opts?: Partial<ProviderAndModel>,
-            ) {
-                const provider =
-                    opts?.provider ||
-                    getConfiguredProviders().find((p) => !!p.chat);
-
-                const chatResponse = provider.chat(
-                    messages,
-                    opts?.model || provider.defaultModels.chat,
-                );
-                if (stream) {
-                    return chatResponse;
-                }
-                return new Promise(async (resolve) => {
-                    let fullTextResponse = "";
-                    const stream = await chatResponse;
-                    for await (const chunk of stream) {
-                        fullTextResponse += chunk;
-                    }
-                    resolve(fullTextResponse);
-                });
-            },
+            ask,
         },
     };
 }

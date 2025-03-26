@@ -1,6 +1,6 @@
 import { Button } from "@fullstacked/ui";
 import Editor from "../editor";
-import { WorkspaceItem, WorkspaceItemType } from "./views";
+import { Contents, WorkspaceItem, WorkspaceItemType } from "./views";
 import { Code } from "./views/code";
 import { Image } from "./views/image";
 import { Binary } from "./views/binary";
@@ -75,6 +75,49 @@ export function createWorkspace(editorInstance: Editor) {
         }
     };
 
+    function open(name: string, contents: string | Uint8Array): void;
+    function open(
+        name: string,
+        contents: Promise<string | Uint8Array>,
+    ): Promise<void>;
+    function open(name: string, contents: Contents) {
+        const fileExtension = name.split(".").pop();
+        let itemType: WorkspaceItemType = WorkspaceItemType.binary;
+
+        if (codeExtensions.includes(fileExtension)) {
+            itemType = WorkspaceItemType.code;
+        } else if (imageExtensions.includes(fileExtension)) {
+            itemType = WorkspaceItemType.image;
+        }
+
+        const sameFileOpened = items.find(
+            (i) =>
+                i.workspaceItem.type === itemType &&
+                i.workspaceItem.name === name,
+        );
+
+        if (sameFileOpened) {
+            setView(sameFileOpened.workspaceItem);
+            return sameFileOpened.workspaceItem.replace(contents);
+        }
+
+        let view: WorkspaceItem;
+        switch (itemType) {
+            case WorkspaceItemType.code:
+                view = new Code(name);
+                break;
+            case WorkspaceItemType.image:
+                view = new Image(name);
+                break;
+            case WorkspaceItemType.binary:
+                view = new Binary(name);
+                break;
+        }
+
+        add(view);
+        return view.init(contents);
+    }
+
     return {
         container,
         api: {
@@ -89,49 +132,7 @@ export function createWorkspace(editorInstance: Editor) {
                 remove,
             },
             file: {
-                open(
-                    name: string,
-                    contents:
-                        | Uint8Array
-                        | string
-                        | Promise<string | Uint8Array>,
-                ) {
-                    const fileExtension = name.split(".").pop();
-                    let itemType: WorkspaceItemType = WorkspaceItemType.binary;
-
-                    if (codeExtensions.includes(fileExtension)) {
-                        itemType = WorkspaceItemType.code;
-                    } else if (imageExtensions.includes(fileExtension)) {
-                        itemType = WorkspaceItemType.image;
-                    }
-
-                    const sameFileOpened = items.find(
-                        (i) =>
-                            i.workspaceItem.type === itemType &&
-                            i.workspaceItem.name === name,
-                    );
-
-                    if (sameFileOpened) {
-                        setView(sameFileOpened.workspaceItem);
-                        return sameFileOpened.workspaceItem.replace(contents);
-                    }
-
-                    let view: WorkspaceItem;
-                    switch (itemType) {
-                        case WorkspaceItemType.code:
-                            view = new Code(name);
-                            break;
-                        case WorkspaceItemType.image:
-                            view = new Image(name);
-                            break;
-                        case WorkspaceItemType.binary:
-                            view = new Binary(name);
-                            break;
-                    }
-
-                    add(view);
-                    return view.init(contents);
-                },
+                open,
                 isOpen(name: string) {
                     return !!items.find((i) => i.workspaceItem.name === name);
                 },

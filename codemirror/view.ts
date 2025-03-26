@@ -1,6 +1,11 @@
 import { EditorView, basicSetup } from "codemirror";
 import { keymap } from "@codemirror/view";
-import { EditorSelection, Extension, StateEffect } from "@codemirror/state";
+import {
+    Compartment,
+    EditorSelection,
+    Extension,
+    StateEffect,
+} from "@codemirror/state";
 import { indentWithTab } from "@codemirror/commands";
 import { indentUnit } from "@codemirror/language";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -17,6 +22,15 @@ export function createCmView(opts: CmViewOpts) {
     const container = document.createElement("div");
     container.classList.add("cm-container");
 
+    const compartment = new Compartment();
+    const extensions = new Set<Extension>();
+
+    if (opts?.extensions) {
+        for (const ext of opts.extensions) {
+            extensions.add(ext);
+        }
+    }
+
     const editorView = new EditorView({
         parent: container,
         doc: opts.contents,
@@ -26,9 +40,14 @@ export function createCmView(opts: CmViewOpts) {
             basicSetup,
             keymap.of([indentWithTab]),
             indentUnit.of(new Array(tabWidth + 1).join(" ")),
-            ...(opts?.extensions || []),
+            compartment.of([...extensions]),
         ],
     });
+
+    const reloadExtensions = () => {
+        const effects = compartment.reconfigure([...extensions]);
+        editorView.dispatch({ effects });
+    };
 
     return {
         container,
@@ -63,12 +82,21 @@ export function createCmView(opts: CmViewOpts) {
                 selection,
             });
         },
-        addExtension(extension: Extension) {
-            if (!extension) return;
-
-            editorView.dispatch({
-                effects: StateEffect.appendConfig.of([extension]),
-            });
+        extensions: {
+            add(extension: Extension) {
+                if (!extension || extensions.has(extension)) return;
+                extensions.add(extension);
+                reloadExtensions();
+            },
+            remove(extension: Extension) {
+                if (!extension || extensions.has(extension)) return;
+                extensions.delete(extension);
+                reloadExtensions();
+            },
+            removeAll() {
+                extensions.clear();
+                reloadExtensions();
+            },
         },
         remove() {
             container.remove();

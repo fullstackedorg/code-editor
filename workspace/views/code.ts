@@ -23,56 +23,61 @@ export class Code extends WorkspaceItem {
     cmViewContainer = document.createElement("div");
     loadContents(contents: string | Uint8Array) {
         contents = uint8ToStr(contents);
-        this.cmView = createCmView({
-            contents,
-            extensions:
-                WorkspaceItem.editorInstance.opts?.codemirrorExtraExtensions?.(
-                    this.name,
-                ),
-        });
+        this.cmView = createCmView({ contents });
         this.cmViewContainer.append(this.cmView.container);
+        this.reloadExtensions();
+    }
+
+    private async getAutocomplete(state: EditorState) {
+        if (!this.provider) return "";
+        const text = state.doc.toString();
+        const cursor = state.selection.main.head;
+        const prefix = text.slice(0, cursor);
+        const suffix = text.slice(cursor) || " \n";
+        const response = await WorkspaceItem.editorInstance
+            .getAgent()
+            .complete(prefix, suffix, this.provider);
+        return response;
+    }
+
+    private reloadExtensions() {
+        if (!this.cmView) return;
+
+        this.cmView.extensions.removeAll();
+
+        if (this.provider) {
+            this.cmView.extensions.add(
+                inlineSuggestion({
+                    fetchFn: (state) => this.getAutocomplete(state),
+                    delay: 500,
+                }),
+            );
+        }
 
         languageHighlightExtension(this.name.split(".").pop()).then((ext) =>
-            this.cmView.addExtension(ext),
-        );
-
-        const getAutocomplete = async (state: EditorState) => {
-            if (!this.provider) return "";
-            const text = state.doc.toString();
-            const cursor = state.selection.main.head;
-            const prefix = text.slice(0, cursor);
-            const suffix = text.slice(cursor) || " \n";
-            const response = await WorkspaceItem.editorInstance
-                .getAgent()
-                .complete(prefix, suffix, this.provider);
-            return response;
-        };
-
-        this.cmView.addExtension(
-            inlineSuggestion({
-                fetchFn: getAutocomplete,
-                delay: 500,
-            }),
+            this.cmView.extensions.add(ext),
         );
     }
 
+    titleContainer = document.createElement("div");
     icon() {
         return createDevIcon(this.name);
     }
     title() {
-        return this.name;
+        this.titleContainer.innerText = this.name;
+        return this.titleContainer;
     }
 
     scroll: { top: number; left: number };
     stash() {
         this.scroll = {
-            top: this.cmView.container.parentElement.scrollTop,
-            left: this.cmView.container.parentElement.scrollLeft,
+            top: this.cmViewContainer?.parentElement?.scrollTop || 0,
+            left: this.cmViewContainer?.parentElement?.scrollLeft || 0,
         };
     }
     restore() {
         if (!this.scroll) return;
-        this.cmView.container.parentElement.scrollTo(this.scroll);
+        this.cmViewContainer?.parentElement?.scrollTo?.(this.scroll);
     }
 
     static lastProviderUsed: ProviderAndModel = null;
@@ -91,6 +96,7 @@ export class Code extends WorkspaceItem {
             (p) => {
                 this.provider = p;
                 Code.lastProviderUsed = this.provider;
+                this.reloadExtensions();
             },
         );
     }
@@ -113,6 +119,12 @@ export class Code extends WorkspaceItem {
         if (formatted !== this.cmView.value) {
             this.cmView.replaceContents(formatted);
         }
+    }
+
+    rename(newName: string) {
+        this.name = newName;
+        this.title();
+        this.reloadExtensions();
     }
 }
 

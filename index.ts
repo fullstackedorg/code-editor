@@ -52,10 +52,13 @@ const imageButton = Button({
     iconLeft: "Plus",
 });
 
-imageButton.onclick = async () => {
+const getImage = async () => {
     const imageRequest = await core_fetch2("https://fakeimg.pl/600x400");
-    const imageData = new Uint8Array(await imageRequest.arrayBuffer());
-    codeEditor.getWorkspace().file.open("image.jpg", imageData);
+    return new Uint8Array(await imageRequest.arrayBuffer());
+};
+
+imageButton.onclick = async () => {
+    codeEditor.getWorkspace().file.open("image.jpg", getImage());
 };
 
 left.append(codeEditor.agentConfigurator, newChatButton, imageButton);

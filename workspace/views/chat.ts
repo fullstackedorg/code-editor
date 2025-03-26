@@ -14,6 +14,7 @@ import {
     AgentConversationMessages,
     AgentProvider,
 } from "../../agent/providers/agentProvider";
+import { Code } from "./code";
 
 export class Chat extends WorkspaceItem {
     type = WorkspaceItemType.chat;
@@ -362,9 +363,7 @@ function createMarkdownStreamRenderer(
             if (attr !== "class") return;
             codeView.lang = value;
             const highlightExtension = await languageHighlightExtension(value);
-            if (highlightExtension) {
-                codeView.addExtension(highlightExtension);
-            }
+            codeView.extensions.add(highlightExtension);
         };
         codeView.appendChild = (text) => {
             codeView.editorView.dispatch({
@@ -392,24 +391,33 @@ function createMarkdownStreamRenderer(
             iconRight: "File Add",
             style: "icon-small",
         });
-        createFileButton.onclick = async () => {
+        createFileButton.onclick = () => {
             const text = codeView.value;
             const lang = codeView.lang;
-            const summarized = await editorInstance.getAgent().ask(
-                [
-                    {
-                        role: "user",
-                        content: `Summarize in one word only what this code is about, no markdown: ${text}`,
-                    },
-                ],
-                false,
-                provider,
-            );
-            const filename =
-                summarized.split(".").shift().toLowerCase().trim() +
-                "." +
-                languageToFileExtension(lang);
-            editorInstance.getWorkspace().file.open(filename, text);
+            const fileExtension = languageToFileExtension(lang);
+            const code = new Code("new-file." + fileExtension);
+            editorInstance.getWorkspace().item.add(code);
+            code.init(text);
+
+            editorInstance
+                .getAgent()
+                .ask(
+                    [
+                        {
+                            role: "user",
+                            content: `Summarize in one word only what this code is about, no markdown: ${text}`,
+                        },
+                    ],
+                    false,
+                    provider,
+                )
+                .then((summarized) => {
+                    const filename =
+                        summarized.split(".").shift().toLowerCase().trim() +
+                        "." +
+                        languageToFileExtension(lang);
+                    code.rename(filename);
+                });
         };
         actions.append(createFileButton);
 
