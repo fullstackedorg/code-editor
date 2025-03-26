@@ -45,6 +45,14 @@ export class Code extends WorkspaceItem {
 
         this.cmView.extensions.removeAll();
 
+        const extensions =
+            WorkspaceItem.editorInstance?.opts?.codemirrorExtraExtensions?.(
+                this.name,
+            ) || [];
+        for (const ext of extensions) {
+            this.cmView.extensions.add(ext);
+        }
+
         if (this.provider) {
             this.cmView.extensions.add(
                 inlineSuggestion({
