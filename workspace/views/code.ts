@@ -20,7 +20,7 @@ export class Code extends WorkspaceItem {
     private cmView: ReturnType<typeof createCmView>;
 
     private provider: ProviderAndModel;
-    cmViewPlaceholder = document.createElement("div");
+    cmViewContainer = document.createElement("div");
     loadContents(contents: string | Uint8Array) {
         contents = uint8ToStr(contents);
         this.cmView = createCmView({
@@ -30,7 +30,7 @@ export class Code extends WorkspaceItem {
                     this.name,
                 ),
         });
-        this.cmViewPlaceholder.replaceWith(this.cmView.container);
+        this.cmViewContainer.append(this.cmView.container);
 
         languageHighlightExtension(this.name.split(".").pop()).then((ext) =>
             this.cmView.addExtension(ext),
@@ -86,7 +86,7 @@ export class Code extends WorkspaceItem {
 
         return renderCodeView(
             WorkspaceItem.editorInstance,
-            this.cmViewPlaceholder,
+            this.cmViewContainer,
             this.provider,
             (p) => {
                 this.provider = p;
