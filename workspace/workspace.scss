@@ -18,9 +18,11 @@
         list-style-type: none;
         display: flex;
         padding: 0;
-        border-bottom: 1px solid c.$gray;
         white-space: nowrap;
         overflow: auto;
+        &:has(> li) {
+            border-bottom: 1px solid c.$gray;
+        }
         > li {
             padding: s.$x-small s.$x-small s.$x-small s.$small;
             border-right: 1px solid c.$gray;
