@@ -59,7 +59,7 @@ export function createWorkspace(editorInstance: Editor) {
 
     const remove = (workspaceItem: WorkspaceItem) => {
         const indexOf = items.findIndex(
-            (i) => i.workspaceItem.name === workspaceItem.name,
+            (i) => i.workspaceItem.name === workspaceItem?.name,
         );
         if (indexOf === -1) return;
         const item = items.at(indexOf);

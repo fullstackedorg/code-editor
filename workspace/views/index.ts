@@ -47,6 +47,7 @@ export abstract class WorkspaceItem {
 
     init(contents: string | Uint8Array): void;
     init(contents: Promise<string | Uint8Array>): Promise<void>;
+    init(contents: Contents): void | Promise<void>;
     init(contents: Contents) {
         if (contents instanceof Promise) {
             return new Promise<void>(async (resolve) => {
