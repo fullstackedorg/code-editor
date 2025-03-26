@@ -19,6 +19,13 @@ export class Code extends WorkspaceItem {
 
     private cmView: ReturnType<typeof createCmView>;
 
+    constructor(name: string) {
+        name =
+            WorkspaceItem.editorInstance.opts?.validateNewFileName?.(name) ||
+            name;
+        super(name);
+    }
+
     private provider: ProviderAndModel;
     cmViewContainer = document.createElement("div");
     loadContents(contents: string | Uint8Array) {
@@ -130,7 +137,9 @@ export class Code extends WorkspaceItem {
     }
 
     rename(newName: string) {
-        this.name = newName;
+        this.name =
+            WorkspaceItem.editorInstance.opts?.validateNewFileName?.(newName) ||
+            newName;
         this.title();
         this.reloadExtensions();
     }
