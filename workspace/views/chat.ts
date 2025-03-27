@@ -25,7 +25,7 @@ export class Chat extends WorkspaceItem {
     constructor() {
         super(makeid(6));
         this.titleContainer.innerText = "New Chat";
-        
+
         // make sure opts are loaded
         WorkspaceItem.editorInstance.getAgent();
     }
@@ -354,14 +354,12 @@ function createMarkdownStreamRenderer(
         }
 
         let parent = data.nodes[data.index];
-        const codeView = createCmView({
-            contents: "",
-            extensions: [EditorView.editable.of(false)],
-        }) as ReturnType<typeof createCmView> & {
+        const codeView = createCmView() as ReturnType<typeof createCmView> & {
             setAttribute(attr: string, value: string): void;
             appendChild(text: Text): void;
             lang: string;
         };
+        codeView.editing.lock();
         codeView.setAttribute = async function (attr, value) {
             if (attr !== "class") return;
             codeView.lang = value;
@@ -394,17 +392,27 @@ function createMarkdownStreamRenderer(
             iconRight: "File Add",
             style: "icon-small",
         });
-        createFileButton.onclick = () => {
+        createFileButton.onclick = async () => {
             const text = codeView.value;
             const lang = codeView.lang;
             const fileExtension = languageToFileExtension(lang);
-            const code = new Code("new-file." + fileExtension);
-            editorInstance.getWorkspace().item.add(code);
-            code.init(text);
 
-            editorInstance
-                .getAgent()
-                .ask(
+            const placeholderName = "new-file." + fileExtension;
+            const code = new Code(placeholderName);
+
+            const validateAndRename = async (name: string) => {
+                code.preventUpdates(true);
+                let validName =
+                    editorInstance.opts?.createNewFileName?.(name) || name;
+                if (validName instanceof Promise) {
+                    validName = await validName;
+                }
+                code.rename(validName);
+                code.preventUpdates(false);
+            };
+
+            const createSummarizedName = async () => {
+                const summarized = await editorInstance.getAgent().ask(
                     [
                         {
                             role: "user",
@@ -413,14 +421,18 @@ function createMarkdownStreamRenderer(
                     ],
                     false,
                     provider,
-                )
-                .then((summarized) => {
-                    const filename =
-                        summarized.split(".").shift().toLowerCase().trim() +
-                        "." +
-                        languageToFileExtension(lang);
-                    code.rename(filename);
-                });
+                );
+                const filename =
+                    summarized.split(".").shift().toLowerCase().trim() +
+                    "." +
+                    languageToFileExtension(lang);
+                await validateAndRename(filename);
+            };
+
+            validateAndRename(placeholderName).then(createSummarizedName);
+
+            editorInstance.getWorkspace().item.add(code);
+            code.init(text);
         };
         actions.append(createFileButton);
 

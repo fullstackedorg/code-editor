@@ -13,40 +13,67 @@ type CmViewOpts = {
 
 export const tabWidth = 4;
 
-export function createCmView(opts: CmViewOpts) {
+export function createCmView(opts?: CmViewOpts) {
     const container = document.createElement("div");
     container.classList.add("cm-container");
 
     const compartment = new Compartment();
-    const extensions = new Set<Extension>();
+    const loadedExtensions = new Set<Extension>();
 
     if (opts?.extensions) {
         for (const ext of opts.extensions) {
-            extensions.add(ext);
+            loadedExtensions.add(ext);
         }
     }
 
     const editorView = new EditorView({
         parent: container,
-        doc: opts.contents,
+        doc: opts?.contents || "",
         extensions: [
             oneDark,
             coloredBrackets,
             basicSetup,
             keymap.of([indentWithTab]),
             indentUnit.of(new Array(tabWidth + 1).join(" ")),
-            compartment.of([...extensions]),
+            compartment.of([...loadedExtensions]),
         ],
     });
 
     const reloadExtensions = () => {
-        const effects = compartment.reconfigure([...extensions]);
+        const effects = compartment.reconfigure([...loadedExtensions]);
         editorView.dispatch({ effects });
     };
+
+    const extensions = {
+        add(extension: Extension) {
+            if (!extension) return;
+            loadedExtensions.add(extension);
+            reloadExtensions();
+        },
+        remove(extension: Extension) {
+            if (!extension) return;
+            loadedExtensions.delete(extension);
+            reloadExtensions();
+        },
+        removeAll() {
+            loadedExtensions.clear();
+            reloadExtensions();
+        },
+    };
+
+    let lockEditing = EditorView.editable.of(false);
 
     return {
         container,
         editorView,
+        editing: {
+            lock() {
+                extensions.add(lockEditing);
+            },
+            unlock() {
+                extensions.remove(lockEditing);
+            },
+        },
         replaceContents(newContents: string) {
             const currentContents = editorView.state.doc.toString();
             if (newContents === currentContents) return;
@@ -77,22 +104,7 @@ export function createCmView(opts: CmViewOpts) {
                 selection,
             });
         },
-        extensions: {
-            add(extension: Extension) {
-                if (!extension || extensions.has(extension)) return;
-                extensions.add(extension);
-                reloadExtensions();
-            },
-            remove(extension: Extension) {
-                if (!extension || extensions.has(extension)) return;
-                extensions.delete(extension);
-                reloadExtensions();
-            },
-            removeAll() {
-                extensions.clear();
-                reloadExtensions();
-            },
-        },
+        extensions,
         remove() {
             container.remove();
             editorView.destroy();

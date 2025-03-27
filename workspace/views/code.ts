@@ -20,18 +20,13 @@ export class Code extends WorkspaceItem {
 
     private cmView: ReturnType<typeof createCmView>;
 
-    constructor(name: string) {
-        super(name);
-    }
-
     private provider: ProviderAndModel;
     cmViewContainer = document.createElement("div");
     loadContents(contents: string | Uint8Array) {
         contents = uint8ToStr(contents);
         this.cmView = createCmView({ contents });
         this.cmViewContainer.append(this.cmView.container);
-        this.loadLanguageHighlight();
-        this.rename(this.name);
+        this.reloadExtensions();
     }
 
     private async getAutocomplete(state: EditorState) {
@@ -46,27 +41,20 @@ export class Code extends WorkspaceItem {
         return response;
     }
 
-    nameIsValid = false;
     async rename(newName: string) {
-        this.nameIsValid = false;
-        let nameUpdate =
-            WorkspaceItem.editorInstance.opts?.validateNewFileName?.(
-                this.name,
-                newName,
-            ) || newName;
-        if (nameUpdate instanceof Promise) {
-            nameUpdate = await nameUpdate;
-        }
-        this.name = nameUpdate;
+        this.name = newName;
         this.title();
-        this.nameIsValid = true;
         this.reloadExtensions();
     }
 
-    private loadLanguageHighlight(){
-        languageHighlightExtension(this.name.split(".").pop()).then((ext) =>
-            this.cmView.extensions.add(ext),
-        );
+    private updatesBlocked = false;
+    preventUpdates(prevent: boolean) {
+        this.updatesBlocked = prevent;
+        if (this.updatesBlocked) {
+            this.cmView?.editing.lock();
+        } else {
+            this.cmView?.editing.unlock();
+        }
     }
 
     private reloadExtensions() {
@@ -74,9 +62,12 @@ export class Code extends WorkspaceItem {
 
         this.cmView.extensions.removeAll();
 
+        this.preventUpdates(this.updatesBlocked);
+
         this.cmView.extensions.add(
             EditorView.updateListener.of(() => {
-                if(!this.nameIsValid) return;
+                if (this.updatesBlocked) return;
+
                 WorkspaceItem.editorInstance.fileUpdated(
                     this.name,
                     this.cmView.value,
@@ -100,8 +91,9 @@ export class Code extends WorkspaceItem {
                 }),
             );
         }
-
-        this.loadLanguageHighlight();
+        languageHighlightExtension(this.name.split(".").pop()).then((ext) =>
+            this.cmView.extensions.add(ext),
+        );
     }
 
     titleContainer = document.createElement("div");

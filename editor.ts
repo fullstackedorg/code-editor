@@ -7,7 +7,7 @@ type EditorOpts = {
     agentConfigurations?: AgentConfigWithUses[];
     codemirrorExtraExtensions?(filename: string): Extension[];
     setiFontLocation?: string;
-    validateNewFileName?(currentName: string, suggestedName: string): string | Promise<string>;
+    createNewFileName?(suggestedName: string): string | Promise<string>;
 };
 
 type AgentConfigurationUpdate = Event & {
