@@ -37,11 +37,20 @@ export abstract class WorkspaceItem {
     }
 
     abstract icon(): HTMLElement;
-    abstract title(): string | HTMLElement;
     abstract render(): HTMLElement;
     abstract stash(): void;
     abstract restore(): void;
     abstract destroy(): void;
+
+    titleContainer = document.createElement("div");
+    title(){
+        this.titleContainer.innerText = this.name.split("/").pop();
+        return this.titleContainer;
+    }
+    rename(newName: string) {
+        this.name = newName;
+        this.title();
+    }
 
     abstract loadContents(contents: string | Uint8Array): void;
 

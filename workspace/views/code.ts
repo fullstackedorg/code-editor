@@ -41,7 +41,7 @@ export class Code extends WorkspaceItem {
         return response;
     }
 
-    async rename(newName: string) {
+    override async rename(newName: string) {
         if (this.name === newName) return;
         const oldName = this.name;
         this.name = newName;

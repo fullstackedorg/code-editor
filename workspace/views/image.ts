@@ -18,9 +18,6 @@ export class Image extends WorkspaceItem {
     icon() {
         return createDevIcon(this.name);
     }
-    title() {
-        return this.name.split("/").pop();
-    }
     stash() {}
     restore() {}
 

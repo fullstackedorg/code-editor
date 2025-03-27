@@ -48,11 +48,11 @@ export function createWorkspace(editorInstance: Editor) {
         );
         if (!item) return;
 
-        if(item === currentItem) {
+        if (item === currentItem) {
             (item.workspaceItem as Code)?.format();
             return;
         }
-        
+
         currentItem?.workspaceItem.stash();
         currentItem?.tab.classList.remove("active");
         currentItem?.workspaceItem.view.remove();
@@ -152,6 +152,13 @@ export function createWorkspace(editorInstance: Editor) {
 
                     setView(item.workspaceItem);
                     (item.workspaceItem as Code).goTo(pos);
+                },
+                rename(oldName: string, newName: string) {
+                    const item = items.find(
+                        (i) => i.workspaceItem.name === oldName,
+                    );
+
+                    item?.workspaceItem.rename(newName);
                 },
                 close(name: string) {
                     const item = items.find(

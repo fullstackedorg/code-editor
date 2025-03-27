@@ -53,9 +53,6 @@ export class Binary extends WorkspaceItem {
     icon() {
         return createDevIcon(this.name);
     }
-    title() {
-        return this.name.split("/").pop();
-    }
     stash() {}
     restore() {}
     render() {

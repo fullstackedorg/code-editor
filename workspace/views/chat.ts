@@ -8,7 +8,6 @@ import {
     languageToFileExtension,
 } from "../../codemirror/languages";
 import { createCmView } from "../../codemirror/view";
-import { EditorView } from "codemirror";
 import {
     AGENT_USE,
     AgentConversationMessages,
@@ -21,7 +20,6 @@ export class Chat extends WorkspaceItem {
 
     static lastProviderUsed: ProviderAndModel = null;
 
-    titleContainer = document.createElement("div");
     constructor() {
         super(makeid(6));
         this.titleContainer.innerText = "New Chat";
@@ -39,9 +37,6 @@ export class Chat extends WorkspaceItem {
         chatIconContainer.append(Icon("Glitter"));
         return chatIconContainer;
     }
-    title() {
-        return this.titleContainer;
-    }
 
     scrollTop: number;
     conversationContainer: HTMLDivElement;
@@ -50,6 +45,10 @@ export class Chat extends WorkspaceItem {
     }
     restore() {
         this.conversationContainer.scrollTo(0, this.scrollTop);
+    }
+
+    override title() {
+        return this.titleContainer;
     }
 
     prompt: (message: string) => void;
