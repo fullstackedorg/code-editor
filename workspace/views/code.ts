@@ -42,11 +42,12 @@ export class Code extends WorkspaceItem {
     }
 
     async rename(newName: string) {
-        if(this.name === newName) return;
+        if (this.name === newName) return;
+        const oldName = this.name;
         this.name = newName;
         this.title();
         this.reloadExtensions();
-        
+        WorkspaceItem.editorInstance.fileRenamed(oldName, this.name);
     }
 
     private updatesBlocked = false;
