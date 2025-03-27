@@ -47,6 +47,12 @@ export function createWorkspace(editorInstance: Editor) {
             (i) => i.workspaceItem.name === workspaceItem.name,
         );
         if (!item) return;
+
+        if(item === currentItem) {
+            (item.workspaceItem as Code)?.format();
+            return;
+        }
+        
         currentItem?.workspaceItem.stash();
         currentItem?.tab.classList.remove("active");
         currentItem?.workspaceItem.view.remove();
