@@ -10,7 +10,7 @@ import {
     renderProviderInfos,
 } from "./chat";
 import { ProviderAndModel } from "../../agent";
-import { inlineSuggestion } from "codemirror-extension-inline-suggestion";
+import { inlineSuggestion } from "../../codemirror/inline-suggestion";
 import { EditorState } from "@codemirror/state";
 import { uint8ToStr } from "../contents";
 import { EditorView } from "codemirror";
