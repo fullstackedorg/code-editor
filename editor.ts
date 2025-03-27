@@ -19,6 +19,12 @@ type FileUpdateEvent = Event & {
         contents: string | Uint8Array;
     };
 };
+type FileRenameEvent = Event & {
+    fileRename: {
+        oldName: string;
+        newName: string;
+    };
+};
 
 export default class Editor extends EventTarget {
     private workspace: ReturnType<typeof createWorkspace>;
@@ -49,6 +55,10 @@ export default class Editor extends EventTarget {
         event: "file-update",
         callback: (e: FileUpdateEvent) => void,
     ): void;
+    addEventListener(
+        event: "file-rename",
+        callback: (e: FileRenameEvent) => void,
+    ): void;
     addEventListener(e: string, cb: (e: any) => void): void {
         super.addEventListener(e, cb);
     }
@@ -66,6 +76,13 @@ export default class Editor extends EventTarget {
         if (!name) return;
         const e = new Event("file-update") as FileUpdateEvent;
         e.fileUpdate = { name, contents };
+        this.dispatchEvent(e);
+    }
+
+    fileRenamed(oldName: string, newName: string) {
+        if (oldName === newName) return;
+        const e = new Event("file-rename") as FileRenameEvent;
+        e.fileRename = { oldName, newName };
         this.dispatchEvent(e);
     }
 

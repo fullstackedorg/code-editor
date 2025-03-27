@@ -42,9 +42,11 @@ export class Code extends WorkspaceItem {
     }
 
     async rename(newName: string) {
+        if(this.name === newName) return;
         this.name = newName;
         this.title();
         this.reloadExtensions();
+        
     }
 
     private updatesBlocked = false;
