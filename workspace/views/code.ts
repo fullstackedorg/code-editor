@@ -13,6 +13,7 @@ import { ProviderAndModel } from "../../agent";
 import { inlineSuggestion } from "codemirror-extension-inline-suggestion";
 import { EditorState } from "@codemirror/state";
 import { uint8ToStr } from "../contents";
+import { EditorView } from "codemirror";
 
 export class Code extends WorkspaceItem {
     type: WorkspaceItemType.code;
@@ -20,9 +21,6 @@ export class Code extends WorkspaceItem {
     private cmView: ReturnType<typeof createCmView>;
 
     constructor(name: string) {
-        name =
-            WorkspaceItem.editorInstance.opts?.validateNewFileName?.(name) ||
-            name;
         super(name);
     }
 
@@ -32,7 +30,8 @@ export class Code extends WorkspaceItem {
         contents = uint8ToStr(contents);
         this.cmView = createCmView({ contents });
         this.cmViewContainer.append(this.cmView.container);
-        this.reloadExtensions();
+        this.loadLanguageHighlight();
+        this.rename(this.name);
     }
 
     private async getAutocomplete(state: EditorState) {
@@ -47,10 +46,43 @@ export class Code extends WorkspaceItem {
         return response;
     }
 
+    nameIsValid = false;
+    async rename(newName: string) {
+        this.nameIsValid = false;
+        let nameUpdate =
+            WorkspaceItem.editorInstance.opts?.validateNewFileName?.(
+                this.name,
+                newName,
+            ) || newName;
+        if (nameUpdate instanceof Promise) {
+            nameUpdate = await nameUpdate;
+        }
+        this.name = nameUpdate;
+        this.title();
+        this.nameIsValid = true;
+        this.reloadExtensions();
+    }
+
+    private loadLanguageHighlight(){
+        languageHighlightExtension(this.name.split(".").pop()).then((ext) =>
+            this.cmView.extensions.add(ext),
+        );
+    }
+
     private reloadExtensions() {
         if (!this.cmView) return;
 
         this.cmView.extensions.removeAll();
+
+        this.cmView.extensions.add(
+            EditorView.updateListener.of(() => {
+                if(!this.nameIsValid) return;
+                WorkspaceItem.editorInstance.fileUpdated(
+                    this.name,
+                    this.cmView.value,
+                );
+            }),
+        );
 
         const extensions =
             WorkspaceItem.editorInstance?.opts?.codemirrorExtraExtensions?.(
@@ -69,9 +101,7 @@ export class Code extends WorkspaceItem {
             );
         }
 
-        languageHighlightExtension(this.name.split(".").pop()).then((ext) =>
-            this.cmView.extensions.add(ext),
-        );
+        this.loadLanguageHighlight();
     }
 
     titleContainer = document.createElement("div");
@@ -134,14 +164,6 @@ export class Code extends WorkspaceItem {
         if (formatted !== this.cmView.value) {
             this.cmView.replaceContents(formatted);
         }
-    }
-
-    rename(newName: string) {
-        this.name =
-            WorkspaceItem.editorInstance.opts?.validateNewFileName?.(newName) ||
-            newName;
-        this.title();
-        this.reloadExtensions();
     }
 }
 

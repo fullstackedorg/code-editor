@@ -1,20 +1,23 @@
 import { Extension } from "@codemirror/state";
 import { createWorkspace } from "./workspace";
-import { createAgent, ProviderAndModel } from "./agent";
-import {
-    AgentConfigWithUses,
-    AgentConversationMessages,
-} from "./agent/providers/agentProvider";
+import { createAgent } from "./agent";
+import { AgentConfigWithUses } from "./agent/providers/agentProvider";
 
 type EditorOpts = {
     agentConfigurations?: AgentConfigWithUses[];
     codemirrorExtraExtensions?(filename: string): Extension[];
     setiFontLocation?: string;
-    validateNewFileName?(suggestedName: string): string;
+    validateNewFileName?(currentName: string, suggestedName: string): string | Promise<string>;
 };
 
 type AgentConfigurationUpdate = Event & {
     agentConfigurations: AgentConfigWithUses[];
+};
+type FileUpdateEvent = Event & {
+    fileUpdate: {
+        name: string;
+        contents: string | Uint8Array;
+    };
 };
 
 export default class Editor extends EventTarget {
@@ -42,6 +45,10 @@ export default class Editor extends EventTarget {
         event: "agent-configuration-update",
         callback: (e: AgentConfigurationUpdate) => void,
     ): void;
+    addEventListener(
+        event: "file-update",
+        callback: (e: FileUpdateEvent) => void,
+    ): void;
     addEventListener(e: string, cb: (e: any) => void): void {
         super.addEventListener(e, cb);
     }
@@ -52,6 +59,13 @@ export default class Editor extends EventTarget {
             "agent-configuration-update",
         ) as AgentConfigurationUpdate;
         e.agentConfigurations = this.agent.api.configurations;
+        this.dispatchEvent(e);
+    }
+
+    fileUpdated(name: string, contents: string | Uint8Array) {
+        if (!name) return;
+        const e = new Event("file-update") as FileUpdateEvent;
+        e.fileUpdate = { name, contents };
         this.dispatchEvent(e);
     }
 
