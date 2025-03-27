@@ -1,7 +1,6 @@
-import { AgentProvider } from "../agentProvider";
+import { AgentConversationMessages, AgentProvider } from "../agentProvider";
 import { DeepSeekConfiguration, deepseekId } from "./config";
 import { InputText } from "@fullstacked/ui";
-import { AgentConversationMessages } from "../../conversation";
 import openai from "openai";
 import { core_fetch2 } from "fetch";
 

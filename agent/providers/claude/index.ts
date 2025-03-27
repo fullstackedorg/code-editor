@@ -1,9 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { AgentProvider } from "../agentProvider";
+import { AgentConversationMessages, AgentProvider } from "../agentProvider";
 import { ClaudeConfiguration, claudeId } from "./config";
 import { core_fetch2 } from "fetch";
 import { InputText } from "@fullstacked/ui";
-import { AgentConversationMessages } from "../../conversation";
 
 export class Claude extends AgentProvider<ClaudeConfiguration, Anthropic> {
     id = claudeId;

@@ -3,9 +3,8 @@ import { core_fetch2 } from "fetch";
 // @ts-ignore
 import { Ollama as OllamaClient } from "ollama/browser";
 import type * as ollama from "ollama";
-import { AgentProvider } from "../agentProvider";
+import { AgentConversationMessages, AgentProvider } from "../agentProvider";
 import { OllamaConfiguration, ollamaId } from "./config";
-import { AgentConversationMessages } from "../../conversation";
 
 export class Ollama extends AgentProvider<OllamaConfiguration, ollama.Ollama> {
     id = ollamaId;
