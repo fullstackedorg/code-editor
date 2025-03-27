@@ -16,7 +16,7 @@ import { uint8ToStr } from "../contents";
 import { EditorView } from "codemirror";
 
 export class Code extends WorkspaceItem {
-    type: WorkspaceItemType.code;
+    type = WorkspaceItemType.code;
 
     private cmView: ReturnType<typeof createCmView>;
 

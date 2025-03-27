@@ -4,7 +4,7 @@ import { Code, createDevIcon } from "./code";
 import prettyBytes from "pretty-bytes";
 
 export class Binary extends WorkspaceItem {
-    type: WorkspaceItemType.binary;
+    type = WorkspaceItemType.binary;
 
     byteLength: number;
     container = document.createElement("div");

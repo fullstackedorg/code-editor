@@ -3,7 +3,7 @@ import { strToUint8 } from "../contents";
 import { createDevIcon } from "./code";
 
 export class Image extends WorkspaceItem {
-    type: WorkspaceItemType.image;
+    type = WorkspaceItemType.image;
 
     image: HTMLImageElement = document.createElement("img");
 
