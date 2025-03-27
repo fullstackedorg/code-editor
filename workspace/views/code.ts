@@ -152,6 +152,14 @@ export class Code extends WorkspaceItem {
         this.cmView.editorView.dispatch({
             selection: { anchor: pos, head: pos },
         });
+
+        document
+            .querySelector(".cm-activeLine")
+            .scrollIntoView({ block: "center" });
+        this.cmViewContainer?.parentElement?.scrollTo?.({
+            left: 0,
+            top: this.cmViewContainer?.parentElement?.scrollTop || 0,
+        });
     }
 
     async format() {
