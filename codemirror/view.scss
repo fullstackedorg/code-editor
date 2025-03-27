@@ -1,6 +1,8 @@
 @use "../node_modules/@fullstacked/ui/values/colors.scss" as c;
 
 .cm-container {
+    -webkit-text-size-adjust: 100%;
+    
     .cm-editor,
     .cm-gutters {
         background-color: c.$dark !important;

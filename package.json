@@ -1,7 +1,4 @@
 {
-    "name": "@fullstacked/code-editor",
-    "version": "0.0.0",
-    "main": "editor.ts",
     "dependencies": {
         "@anthropic-ai/sdk": "^0.39.0",
         "@babel/runtime": "^7.26.10",
@@ -19,7 +16,7 @@
         "@fullstacked/ui": "github.com:fullstackedorg/ui#b1959309577f3b09ab0ed1ed8248b878c10c2879",
         "@mistralai/mistralai": "^1.5.2",
         "codemirror": "^6.0.1",
-        "codemirror-extension-inline-suggestion": "^0.0.3",
+        "codemirror-extension-inline-suggestion": "github.com:cplepage/codemirror-extension-inline-suggestion",
         "ollama": "^0.5.14",
         "openai": "^4.87.3",
         "prettier": "^3.5.3",
@@ -29,5 +26,8 @@
     },
     "devDependencies": {
         "eruda": "^3.4.1"
-    }
+    },
+    "main": "editor.ts",
+    "name": "@fullstacked/code-editor",
+    "version": "0.0.0"
 }
