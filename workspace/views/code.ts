@@ -26,7 +26,7 @@ export class Code extends WorkspaceItem {
         contents = uint8ToStr(contents);
         this.cmView = createCmView({ contents });
         this.cmViewContainer.append(this.cmView.container);
-        this.reloadExtensions();
+        return this.reloadExtensions();
     }
 
     private async getAutocomplete(state: EditorState) {
@@ -60,7 +60,7 @@ export class Code extends WorkspaceItem {
         }
     }
 
-    private reloadExtensions() {
+    private async reloadExtensions() {
         if (!this.cmView) return;
 
         this.cmView.extensions.removeAll();
@@ -94,9 +94,9 @@ export class Code extends WorkspaceItem {
                 }),
             );
         }
-        languageHighlightExtension(this.name.split(".").pop()).then((ext) =>
-            this.cmView.extensions.add(ext),
-        );
+        
+        const langExtension = await languageHighlightExtension(this.name.split(".").pop())
+        this.cmView.extensions.add(langExtension);
     }
 
     titleContainer = document.createElement("div");

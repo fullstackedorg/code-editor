@@ -43,7 +43,7 @@ export abstract class WorkspaceItem {
     abstract destroy(): void;
 
     titleContainer = document.createElement("div");
-    title(){
+    title() {
         this.titleContainer.innerText = this.name.split("/").pop();
         return this.titleContainer;
     }
@@ -52,7 +52,7 @@ export abstract class WorkspaceItem {
         this.title();
     }
 
-    abstract loadContents(contents: string | Uint8Array): void;
+    abstract loadContents(contents: string | Uint8Array): void | Promise<void>;
 
     init(contents: string | Uint8Array): void;
     init(contents: Promise<string | Uint8Array>): Promise<void>;
@@ -60,7 +60,10 @@ export abstract class WorkspaceItem {
     init(contents: Contents) {
         if (contents instanceof Promise) {
             return new Promise<void>(async (resolve) => {
-                this.loadContents?.(await contents);
+                const load = this.loadContents?.(await contents);
+                if (load instanceof Promise) {
+                    await load;
+                }
                 resolve();
             });
         }
