@@ -166,6 +166,13 @@ export function createWorkspace(editorInstance: Editor) {
 
                     item?.workspaceItem.rename(newName);
                 },
+                update(name: string, content: Contents) {
+                    const item = items.find(
+                        (i) => i.workspaceItem.name === name,
+                    );
+
+                    item?.workspaceItem.replace(content);
+                },
                 close(name: string) {
                     const item = items.find(
                         (i) => i.workspaceItem.name === name,
