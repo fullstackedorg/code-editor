@@ -6,6 +6,7 @@ import { AgentConfigWithUses } from "./agent/providers/agentProvider";
 type EditorOpts = {
     agentConfigurations?: AgentConfigWithUses[];
     codemirrorExtraExtensions?(filename: string): Extension[];
+    codemirrorLinters?(filename: string): Extension[];
     setiFontLocation?: string;
     createNewFileName?(suggestedName: string): string | Promise<string>;
 };

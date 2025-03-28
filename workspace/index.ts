@@ -126,6 +126,13 @@ export function createWorkspace(editorInstance: Editor) {
     return {
         container,
         api: {
+            lint() {
+                items.forEach((i) => {
+                    if (i.workspaceItem instanceof Code) {
+                        i.workspaceItem.lint();
+                    }
+                });
+            },
             clear() {
                 items.forEach((i) => remove(i.workspaceItem));
             },

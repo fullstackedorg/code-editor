@@ -60,6 +60,10 @@ export class Code extends WorkspaceItem {
         }
     }
 
+    lint() {
+        this.cmView.linters.reload();
+    }
+
     private async reloadExtensions() {
         if (!this.cmView) return;
 
@@ -99,6 +103,15 @@ export class Code extends WorkspaceItem {
             this.name.split(".").pop(),
         );
         this.cmView.extensions.add(langExtension);
+
+        this.cmView.linters.removeAll();
+
+        const linters =
+            WorkspaceItem.editorInstance?.opts?.codemirrorLinters?.(
+                this.name,
+            ) || [];
+
+        this.cmView.linters.add(linters)
     }
 
     titleContainer = document.createElement("div");

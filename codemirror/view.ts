@@ -17,6 +17,9 @@ export function createCmView(opts?: CmViewOpts) {
     const container = document.createElement("div");
     container.classList.add("cm-container");
 
+    const lintersCompartment = new Compartment();
+    const loadedLinters = new Set<Extension>();
+
     const compartment = new Compartment();
     const loadedExtensions = new Set<Extension>();
 
@@ -61,7 +64,27 @@ export function createCmView(opts?: CmViewOpts) {
         },
     };
 
-    let lockEditing = EditorView.editable.of(false);
+    const reloadLinters = () => {
+        const effects = lintersCompartment.reconfigure([...loadedLinters]);
+        editorView.dispatch({ effects });
+    };
+
+    const linters = {
+        add(extensions: Extension[]) {
+            for (const extension of extensions) {
+                if (!extension) continue;
+                loadedLinters.add(extension);
+            }
+            reloadLinters();
+        },
+        reload: reloadLinters,
+        removeAll() {
+            loadedLinters.clear();
+            reloadLinters();
+        },
+    };
+
+    const lockEditing = EditorView.editable.of(false);
 
     return {
         container,
@@ -105,6 +128,7 @@ export function createCmView(opts?: CmViewOpts) {
             });
         },
         extensions,
+        linters,
         remove() {
             container.remove();
             editorView.destroy();
