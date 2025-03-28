@@ -80,8 +80,10 @@ export function createCmView(opts?: CmViewOpts) {
         },
         reload: () => {
             for (const linter of loadedLinters) {
-                console.log(linter)
-                const plugin = editorView.plugin(linter[1]) as any;
+                // source: https://discuss.codemirror.net/t/can-we-manually-force-linting-even-if-the-document-hasnt-changed/3570/16
+                const viewPlugin = linter?.[1];
+                if (!viewPlugin) continue;
+                const plugin = editorView.plugin(viewPlugin) as any;
                 if (plugin) {
                     plugin.set = true;
                     plugin.force();
