@@ -94,8 +94,10 @@ export class Code extends WorkspaceItem {
                 }),
             );
         }
-        
-        const langExtension = await languageHighlightExtension(this.name.split(".").pop())
+
+        const langExtension = await languageHighlightExtension(
+            this.name.split(".").pop(),
+        );
         this.cmView.extensions.add(langExtension);
     }
 
@@ -148,18 +150,44 @@ export class Code extends WorkspaceItem {
         this.cmView.replaceContents(uint8ToStr(contents));
     }
 
-    goTo(pos: number) {
-        this.cmView.editorView.dispatch({
-            selection: { anchor: pos, head: pos },
-        });
+    async goTo(pos: number) {
+        const editorView = this.cmView.editorView;
+        editorView.dispatch({ selection: { anchor: pos, head: pos } });
 
-        document
-            .querySelector(".cm-activeLine")
-            .scrollIntoView({ block: "center" });
-        this.cmViewContainer?.parentElement?.scrollTo?.({
-            left: 0,
-            top: this.cmViewContainer?.parentElement?.scrollTop || 0,
-        });
+        const aimedLine = editorView.state.doc.lineAt(pos).number;
+
+        const scrollToPos = () =>
+            new Promise((res) => {
+                const { top } = editorView.lineBlockAt(pos);
+                this.cmViewContainer.parentElement.scrollTo({ top });
+                setTimeout(res);
+            });
+
+        let firstVisibleLine = -1,
+            lastVisibleLine = -1,
+            tries = 3;
+
+        do {
+            await scrollToPos();
+            const height =
+                this.cmViewContainer.parentElement.getBoundingClientRect()
+                    .height * 0.8;
+            const scrollTop = this.cmViewContainer.parentElement.scrollTop;
+            const visibleLines = [
+                editorView.lineBlockAtHeight(scrollTop),
+                editorView.lineBlockAtHeight(height + scrollTop),
+            ];
+            firstVisibleLine = editorView.state.doc.lineAt(
+                visibleLines.at(0).from,
+            ).number;
+            lastVisibleLine = editorView.state.doc.lineAt(
+                visibleLines.at(-1).from,
+            ).number;
+            tries--;
+        } while (
+            tries &&
+            (aimedLine < firstVisibleLine || aimedLine > lastVisibleLine)
+        );
     }
 
     async format() {
