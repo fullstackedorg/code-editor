@@ -39,6 +39,7 @@ export function createCmView(opts?: CmViewOpts) {
             keymap.of([indentWithTab]),
             indentUnit.of(new Array(tabWidth + 1).join(" ")),
             compartment.of([...loadedExtensions]),
+            lintersCompartment.of([...loadedLinters]),
         ],
     });
 
