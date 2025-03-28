@@ -78,7 +78,16 @@ export function createCmView(opts?: CmViewOpts) {
             }
             reloadLinters();
         },
-        reload: reloadLinters,
+        reload: () => {
+            for (const linter of loadedLinters) {
+                console.log(linter)
+                const plugin = editorView.plugin(linter[1]) as any;
+                if (plugin) {
+                    plugin.set = true;
+                    plugin.force();
+                }
+            }
+        },
         removeAll() {
             loadedLinters.clear();
             reloadLinters();
