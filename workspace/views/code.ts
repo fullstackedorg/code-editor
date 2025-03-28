@@ -133,6 +133,7 @@ export class Code extends WorkspaceItem {
     restore() {
         if (!this.scroll) return;
         this.cmViewContainer?.parentElement?.scrollTo?.(this.scroll);
+        this.cmView.linters.reload();
     }
 
     static lastProviderUsed: ProviderAndModel = null;
