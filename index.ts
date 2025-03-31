@@ -34,6 +34,24 @@ codeEditor.addEventListener("agent-configuration-update", (e) => {
     fs.writeFile(agentConfigsFile, JSON.stringify(e.agentConfigurations));
 });
 
+let reopenChat: ReturnType<typeof Button>, messages: string;
+
+codeEditor.addEventListener("file-update", ({ fileUpdate }) => {
+    if (!reopenChat) {
+        reopenChat = Button({
+            text: "Reopen " + fileUpdate.name,
+        });
+        reopenChat.onclick = () => {
+            codeEditor
+                .getWorkspace()
+                .file.open(fileUpdate.name, (async () => messages)());
+        };
+        left.append(reopenChat);
+    }
+
+    messages = fileUpdate.contents as string;
+});
+
 codeEditor.addEventListener("file-update", console.log);
 
 const main = document.createElement("main");

@@ -37,7 +37,12 @@ export class Chat extends WorkspaceItem {
         WorkspaceItem.editorInstance.getAgent();
     }
 
-    loadContents: undefined;
+    loadContents(contents: string) {
+        if(contents) return;
+
+        this.messages = JSON.parse(contents) as AgentMessagesWithProvider;
+        
+    };
     replaceContents: undefined;
 
     icon() {
@@ -62,10 +67,10 @@ export class Chat extends WorkspaceItem {
 
     override title() {
         const title = this.name.split("/").pop();
-        if(title.endsWith(".chat")) {
-            return super.title(title.slice(0, 0 - ".chat".length))
-        } 
-        
+        if (title.endsWith(".chat")) {
+            return super.title(title.slice(0, 0 - ".chat".length));
+        }
+
         return super.title();
     }
 
@@ -157,7 +162,7 @@ export function renderProviderInfos(provider: ProviderAndModel) {
 }
 
 type ChatViewCallbacks = {
-    setTitle(title: string): void;
+    setTitle(title: string): void | Promise<void>;
     onStreamStart(): void;
     onStreamEnd(messages: AgentMessagesWithProvider): void;
 };
@@ -238,7 +243,7 @@ function createChatView(
                 false,
                 provider,
             );
-            cb.setTitle(title);
+            await cb.setTitle(title);
         };
 
         for await (const chunk of streamOrString) {
