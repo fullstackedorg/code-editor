@@ -125,10 +125,6 @@ export class Code extends WorkspaceItem {
     icon() {
         return createDevIcon(this.name);
     }
-    title() {
-        this.titleContainer.innerText = this.name.split("/").pop();
-        return this.titleContainer;
-    }
 
     scroll: { top: number; left: number };
     stash() {
