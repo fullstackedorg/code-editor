@@ -74,6 +74,24 @@ export abstract class AgentProvider<T extends AgentConfiguration, C> {
                 let obj = {};
                 const formData = new FormData(form);
                 for (const [key, value] of formData.entries()) {
+                    if (key.endsWith(".value")) {
+                        continue;
+                    } else if (key.endsWith(".key")) {
+                        if (!value) {
+                            continue;
+                        }
+                        
+                        const keyComponents = key.split(".");
+
+                        if (!obj[keyComponents[0]]) {
+                            obj[keyComponents[0]] = {};
+                        }
+
+                        const keySearch = `${keyComponents[0]}.${keyComponents[1]}.value`;
+                        obj[keyComponents[0]][value] = formData.get(keySearch);
+                        continue;
+                    }
+
                     obj[key] = value;
                 }
                 return obj;

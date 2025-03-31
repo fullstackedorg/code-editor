@@ -1,4 +1,4 @@
-import { InputText } from "@fullstacked/ui";
+import { Button, InputText } from "@fullstacked/ui";
 import { core_fetch2 } from "fetch";
 // @ts-ignore
 import { Ollama as OllamaClient } from "ollama/browser";
@@ -47,7 +47,43 @@ export class Ollama extends AgentProvider<OllamaConfiguration, ollama.Ollama> {
         hostInput.input.name = "host";
         hostInput.input.value = this.config?.host || "http://localhost:11434";
 
-        return [hostInput.container];
+        const extraHeadersList = document.createElement("div");
+        extraHeadersList.classList.add("agent-headers-list");
+
+        const list = document.createElement("ul");
+
+        const addHeaderLine = (key: string, value: string) => {
+            const id = Math.floor(Math.random() * 1000);
+            const line = document.createElement("li");
+            const keyInput = InputText({
+                label: "Header Key",
+            });
+            keyInput.input.value = key;
+            keyInput.input.name = `extraHeaders.${id}.key`;
+            const valueInput = InputText({
+                label: "Header Value",
+            });
+            valueInput.input.value = value;
+            valueInput.input.name = `extraHeaders.${id}.value`;
+            line.append(keyInput.container, valueInput.container);
+            list.append(line);
+        };
+
+        const configHeaders = this.config?.extraHeaders || {};
+        for (const [key, value] of Object.entries(configHeaders)) {
+            addHeaderLine(key, value);
+        }
+        addHeaderLine("", "");
+        
+        const add = Button({
+            text: "Header",
+            iconRight: "Plus",
+        });
+        add.onclick = () => addHeaderLine("", "")
+
+        extraHeadersList.append(list, add);
+        
+        return [hostInput.container, extraHeadersList];
     }
 
     async chat(messages: AgentConversationMessages, model: string) {
@@ -87,24 +123,10 @@ export class Ollama extends AgentProvider<OllamaConfiguration, ollama.Ollama> {
             prompt,
             suffix,
             options: {
-                stop: ["```"]
+                stop: ["```"],
             },
             stream: false,
         });
         return response.response;
     }
 }
-
-// export async function summarize(text: string) {
-//     return openai.chat.completions.create({
-//         model: "llama3.1:8b",
-//         messages: [{
-//             role: "system",
-//             content: "Summarize in one word only what the user input code does to name it as a file. No Markdown. Text only. No extension."
-//         }, {
-//             role: "user",
-//             content: text
-//         }],
-//         stream: false,
-//     });
-// }
