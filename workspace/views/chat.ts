@@ -31,7 +31,7 @@ export class Chat extends WorkspaceItem {
     static lastProviderUsed: ProviderAndModel = null;
 
     constructor() {
-        super(makeid(6));
+        super("New Chat");
 
         // make sure providers opts are loaded
         WorkspaceItem.editorInstance.getAgent();
@@ -60,17 +60,20 @@ export class Chat extends WorkspaceItem {
         this.conversationContainer.scrollTo(0, this.scrollTop);
     }
 
-    private chatTitle = "New Chat";
     override title() {
-        super.title(this.chatTitle);
-        return this.titleContainer;
+        const title = this.name.split("/").pop();
+        if(title.endsWith(".chat")) {
+            return super.title(title.slice(0, 0 - ".chat".length))
+        } 
+        
+        return super.title();
     }
 
     private updated(messages: AgentMessagesWithProvider) {
-        if (this.chatTitle === "New Chat") return;
+        if (this.name === "New Chat") return;
 
         WorkspaceItem.editorInstance.fileUpdated(
-            filenamify(this.chatTitle) + ".chat",
+            this.name,
             JSON.stringify(messages),
         );
     }
@@ -87,15 +90,15 @@ export class Chat extends WorkspaceItem {
             (provider) => (Chat.lastProviderUsed = provider),
             {
                 setTitle: async (title) => {
-                    const sanitized = filenamify(title);
+                    const sanitized = filenamify(title) + ".chat";
                     let validName =
                         WorkspaceItem.editorInstance.opts?.createNewFileName?.(
-                            sanitized + ".chat",
+                            sanitized,
                         ) || sanitized;
                     if (validName instanceof Promise) {
                         validName = await validName;
                     }
-                    this.chatTitle = validName;
+                    this.name = validName;
                     this.title();
                 },
                 onStreamStart: () => {
@@ -519,20 +522,5 @@ function copyToClip(text: string) {
     input.select();
     var result = document.execCommand("copy");
     document.body.removeChild(input);
-    return result;
-}
-
-function makeid(length: number) {
-    let result = "";
-    const characters =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-        result += characters.charAt(
-            Math.floor(Math.random() * charactersLength),
-        );
-        counter += 1;
-    }
     return result;
 }
