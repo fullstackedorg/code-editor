@@ -81,10 +81,10 @@ export class Code extends WorkspaceItem {
                     this.cmView.value,
                 );
 
-                if(diagnosticCount(this.cmView.editorView.state)) {
+                if (diagnosticCount(this.cmView.editorView.state)) {
                     this.notify(true);
                 } else {
-                    this.notify(false)
+                    this.notify(false);
                 }
             }),
         );

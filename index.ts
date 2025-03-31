@@ -34,6 +34,8 @@ codeEditor.addEventListener("agent-configuration-update", (e) => {
     fs.writeFile(agentConfigsFile, JSON.stringify(e.agentConfigurations));
 });
 
+codeEditor.addEventListener("file-update", console.log);
+
 const main = document.createElement("main");
 const left = document.createElement("div");
 const right = document.createElement("div");

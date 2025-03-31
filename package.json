@@ -17,6 +17,7 @@
         "@fullstacked/ui": "github.com:fullstackedorg/ui#b1959309577f3b09ab0ed1ed8248b878c10c2879",
         "@mistralai/mistralai": "^1.5.2",
         "codemirror": "^6.0.1",
+        "filenamify": "^6.0.0",
         "ollama": "^0.5.14",
         "openai": "^4.87.3",
         "prettier": "^3.5.3",

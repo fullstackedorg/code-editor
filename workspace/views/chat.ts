@@ -14,6 +14,16 @@ import {
     AgentProvider,
 } from "../../agent/providers/agentProvider";
 import { Code } from "./code";
+import type f from "filenamify";
+//@ts-ignore
+import ff from "filenamify/browser";
+
+const filenamify: typeof f = ff;
+
+type AgentMessagesWithProvider = (AgentConversationMessages[0] & {
+    provider?: string;
+    model?: string;
+})[];
 
 export class Chat extends WorkspaceItem {
     type = WorkspaceItemType.chat;
@@ -56,6 +66,15 @@ export class Chat extends WorkspaceItem {
         return this.titleContainer;
     }
 
+    private updated(messages: AgentMessagesWithProvider) {
+        if (this.chatTitle === "New Chat") return;
+
+        WorkspaceItem.editorInstance.fileUpdated(
+            filenamify(this.chatTitle) + ".chat",
+            JSON.stringify(messages),
+        );
+    }
+
     prompt: (message: string) => void;
     render() {
         const provider =
@@ -67,15 +86,23 @@ export class Chat extends WorkspaceItem {
             provider,
             (provider) => (Chat.lastProviderUsed = provider),
             {
-                setTitle: (title) => {
-                    this.chatTitle = title;
+                setTitle: async (title) => {
+                    const sanitized = filenamify(title);
+                    let validName =
+                        WorkspaceItem.editorInstance.opts?.createNewFileName?.(
+                            sanitized,
+                        ) || sanitized;
+                    if (validName instanceof Promise) {
+                        validName = await validName;
+                    }
+                    this.chatTitle = validName;
                     this.title();
                 },
                 onStreamStart: () => {
                     this.notify(true, true);
                     this.streaming = true;
                 },
-                onStreamEnd: () => {
+                onStreamEnd: (messages) => {
                     this.streaming = false;
                     const focused =
                         WorkspaceItem.editorInstance.getWorkspace()?.item
@@ -85,6 +112,7 @@ export class Chat extends WorkspaceItem {
                     } else {
                         this.notify(true);
                     }
+                    this.updated(messages);
                 },
             },
         );
@@ -128,7 +156,7 @@ export function renderProviderInfos(provider: ProviderAndModel) {
 type ChatViewCallbacks = {
     setTitle(title: string): void;
     onStreamStart(): void;
-    onStreamEnd(): void;
+    onStreamEnd(messages: AgentMessagesWithProvider): void;
 };
 
 function createChatView(
@@ -137,7 +165,7 @@ function createChatView(
     didSwitchProvider: (provider: ProviderAndModel) => void,
     cb: ChatViewCallbacks,
 ) {
-    const messages: AgentConversationMessages = [];
+    const messages: AgentMessagesWithProvider = [];
 
     const container = document.createElement("div");
     container.classList.add("workspace-view-chat");
@@ -177,9 +205,11 @@ function createChatView(
         }
 
         const agentMessageText = {
-            role: "agent",
+            role: "agent" as const,
             content: "",
-        } as AgentConversationMessages[0];
+            provider: provider.provider.id,
+            model: provider.model,
+        };
 
         messages.push(agentMessageText);
 
@@ -190,24 +220,22 @@ function createChatView(
         );
 
         let didUpdateTitle = false;
-        const updateTitle = () => {
+        const updateTitle = async () => {
             if (!firstResponse || didUpdateTitle) return;
             didUpdateTitle = true;
-            editorInstance
-                .getAgent()
-                .ask(
-                    [
-                        ...messages,
-                        {
-                            role: "user",
-                            content:
-                                "In less than 5 words, no markdown, text-only, what is the subject?",
-                        },
-                    ],
-                    false,
-                    provider,
-                )
-                .then(cb.setTitle);
+            const title = await editorInstance.getAgent().ask(
+                [
+                    ...messages,
+                    {
+                        role: "user",
+                        content:
+                            "In less than 5 words, no markdown, text-only, what is the subject?",
+                    },
+                ],
+                false,
+                provider,
+            );
+            cb.setTitle(title);
         };
 
         for await (const chunk of streamOrString) {
@@ -219,9 +247,9 @@ function createChatView(
             }
         }
         renderer.end();
-        updateTitle();
+        await updateTitle();
 
-        cb.onStreamEnd();
+        cb.onStreamEnd(messages);
     };
 
     const promptAgent = (message: string) => {
