@@ -22,9 +22,8 @@ export class Chat extends WorkspaceItem {
 
     constructor() {
         super(makeid(6));
-        this.titleContainer.innerText = "New Chat";
 
-        // make sure opts are loaded
+        // make sure providers opts are loaded
         WorkspaceItem.editorInstance.getAgent();
     }
 
@@ -43,11 +42,17 @@ export class Chat extends WorkspaceItem {
     stash() {
         this.scrollTop = this.conversationContainer.scrollTop;
     }
+    private streaming = false;
     restore() {
+        if (!this.streaming) {
+            this.notify(false);
+        }
         this.conversationContainer.scrollTo(0, this.scrollTop);
     }
 
+    private chatTitle = "New Chat";
     override title() {
+        super.title(this.chatTitle);
         return this.titleContainer;
     }
 
@@ -61,7 +66,27 @@ export class Chat extends WorkspaceItem {
             WorkspaceItem.editorInstance,
             provider,
             (provider) => (Chat.lastProviderUsed = provider),
-            (title) => (this.titleContainer.innerText = title),
+            {
+                setTitle: (title) => {
+                    this.chatTitle = title;
+                    this.title();
+                },
+                onStreamStart: () => {
+                    this.notify(true, true);
+                    this.streaming = true;
+                },
+                onStreamEnd: () => {
+                    this.streaming = false;
+                    const focused =
+                        WorkspaceItem.editorInstance.getWorkspace()?.item
+                            ?.current?.workspaceItem === this;
+                    if (focused) {
+                        this.notify(false);
+                    } else {
+                        this.notify(true);
+                    }
+                },
+            },
         );
 
         this.conversationContainer = conversation;
@@ -100,11 +125,17 @@ export function renderProviderInfos(provider: ProviderAndModel) {
     return providerInfos;
 }
 
+type ChatViewCallbacks = {
+    setTitle(title: string): void;
+    onStreamStart(): void;
+    onStreamEnd(): void;
+};
+
 function createChatView(
     editorInstance: Editor,
     provider: ProviderAndModel,
     didSwitchProvider: (provider: ProviderAndModel) => void,
-    setTitle: (title: string) => void,
+    cb: ChatViewCallbacks,
 ) {
     const messages: AgentConversationMessages = [];
 
@@ -176,7 +207,7 @@ function createChatView(
                     false,
                     provider,
                 )
-                .then(setTitle);
+                .then(cb.setTitle);
         };
 
         for await (const chunk of streamOrString) {
@@ -189,9 +220,12 @@ function createChatView(
         }
         renderer.end();
         updateTitle();
+
+        cb.onStreamEnd();
     };
 
     const promptAgent = (message: string) => {
+        cb.onStreamStart();
         addUserMessage(message);
         const agentResponse = editorInstance
             .getAgent()

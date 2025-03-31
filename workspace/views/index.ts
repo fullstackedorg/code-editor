@@ -42,9 +42,29 @@ export abstract class WorkspaceItem {
     abstract restore(): void;
     abstract destroy(): void;
 
+    private notificationElement = document.createElement("div");
+    notify(show: boolean, blink = false) {
+        if (!show) {
+            this.notificationElement.classList.remove("show");
+            this.notificationElement.classList.remove("blink");
+        } else {
+            this.notificationElement.classList.add("show");
+            if (blink) {
+                this.notificationElement.classList.add("blink");
+            } else {
+                this.notificationElement.classList.remove("blink");
+            }
+        }
+    }
+
     titleContainer = document.createElement("div");
-    title() {
-        this.titleContainer.innerText = this.name.split("/").pop();
+    title(title?: string) {
+        this.titleContainer.classList.add("title");
+        this.titleContainer.innerText = title || this.name.split("/").pop();
+
+        this.notificationElement.classList.add("notification");
+        this.titleContainer.append(this.notificationElement);
+
         return this.titleContainer;
     }
     rename(newName: string) {

@@ -14,6 +14,7 @@ import { inlineSuggestion } from "../../codemirror/inline-suggestion";
 import { EditorState } from "@codemirror/state";
 import { uint8ToStr } from "../contents";
 import { EditorView } from "codemirror";
+import { diagnosticCount } from "@codemirror/lint";
 
 export class Code extends WorkspaceItem {
     type = WorkspaceItemType.code;
@@ -79,6 +80,12 @@ export class Code extends WorkspaceItem {
                     this.name,
                     this.cmView.value,
                 );
+
+                if(diagnosticCount(this.cmView.editorView.state)) {
+                    this.notify(true);
+                } else {
+                    this.notify(false)
+                }
             }),
         );
 
@@ -111,7 +118,7 @@ export class Code extends WorkspaceItem {
                 this.name,
             ) || [];
 
-        this.cmView.linters.add(linters)
+        this.cmView.linters.add(linters);
     }
 
     titleContainer = document.createElement("div");
