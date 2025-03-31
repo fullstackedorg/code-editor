@@ -90,7 +90,7 @@ export class Chat extends WorkspaceItem {
                     const sanitized = filenamify(title);
                     let validName =
                         WorkspaceItem.editorInstance.opts?.createNewFileName?.(
-                            sanitized,
+                            sanitized + ".chat",
                         ) || sanitized;
                     if (validName instanceof Promise) {
                         validName = await validName;
