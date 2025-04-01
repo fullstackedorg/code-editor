@@ -25,6 +25,8 @@ type AgentMessagesWithProvider = (AgentConversationMessages[0] & {
     model?: string;
 })[];
 
+const td = new TextDecoder();
+
 export class Chat extends WorkspaceItem {
     type = WorkspaceItemType.chat;
 
@@ -38,16 +40,19 @@ export class Chat extends WorkspaceItem {
     }
 
     private messages: AgentMessagesWithProvider = [];
-    loadContents(contents: string) {
-        if (contents) {
-            console.log(contents);
-            this.messages = JSON.parse(contents);
-            this.chatView.setMessages(this.messages);
-            this.chatView.conversation.scrollTo(
-                0,
-                this.chatView.conversation.scrollHeight,
-            );
+    loadContents(contents: string | Uint8Array) {
+        if (!contents) return;
+
+        if (contents instanceof Uint8Array) {
+            contents = td.decode(contents);
         }
+
+        this.messages = JSON.parse(contents);
+        this.chatView.setMessages(this.messages);
+        this.chatView.conversation.scrollTo(
+            0,
+            this.chatView.conversation.scrollHeight,
+        );
     }
     replaceContents: undefined;
 
