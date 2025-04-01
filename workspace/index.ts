@@ -1,5 +1,5 @@
 import { Button } from "@fullstacked/ui";
-import Editor from "../editor";
+import Editor, { Chat } from "../editor";
 import { Contents, WorkspaceItem, WorkspaceItemType } from "./views";
 import { Code } from "./views/code";
 import { Image } from "./views/image";
@@ -93,6 +93,8 @@ export function createWorkspace(editorInstance: Editor) {
             itemType = WorkspaceItemType.code;
         } else if (imageExtensions.includes(fileExtension)) {
             itemType = WorkspaceItemType.image;
+        } else if (fileExtension === "chat") {
+            itemType = WorkspaceItemType.chat;
         }
 
         const sameFileOpened = items.find(
@@ -110,6 +112,9 @@ export function createWorkspace(editorInstance: Editor) {
         switch (itemType) {
             case WorkspaceItemType.code:
                 view = new Code(name);
+                break;
+            case WorkspaceItemType.chat:
+                view = new Chat(name);
                 break;
             case WorkspaceItemType.image:
                 view = new Image(name);

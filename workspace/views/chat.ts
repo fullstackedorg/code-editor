@@ -30,20 +30,34 @@ export class Chat extends WorkspaceItem {
 
     static lastProviderUsed: ProviderAndModel = null;
 
-    constructor() {
-        super("New Chat");
+    constructor(name?: string) {
+        super(name || "New Chat");
 
         // make sure providers opts are loaded
         WorkspaceItem.editorInstance.getAgent();
     }
 
+    private messages: AgentMessagesWithProvider = [];
     loadContents(contents: string) {
-        if(contents) return;
-
-        this.messages = JSON.parse(contents) as AgentMessagesWithProvider;
-        
-    };
+        if (contents) {
+            console.log(contents)
+            this.messages = JSON.parse(contents);
+            this.chatView.setMessages(this.messages);
+        }
+    }
     replaceContents: undefined;
+
+    private addMessage(message: AgentMessagesWithProvider[0]) {
+        this.messages.push(message);
+
+        if (this.name === "New Chat") return;
+
+        console.log(this.messages)
+        WorkspaceItem.editorInstance.fileUpdated(
+            this.name,
+            JSON.stringify(this.messages),
+        );
+    }
 
     icon() {
         const chatIconContainer = document.createElement("div");
@@ -53,16 +67,15 @@ export class Chat extends WorkspaceItem {
     }
 
     scrollTop: number;
-    conversationContainer: HTMLDivElement;
     stash() {
-        this.scrollTop = this.conversationContainer.scrollTop;
+        this.scrollTop = this.chatView.conversation.scrollTop;
     }
     private streaming = false;
     restore() {
         if (!this.streaming) {
             this.notify(false);
         }
-        this.conversationContainer.scrollTo(0, this.scrollTop);
+        this.chatView.conversation.scrollTo(0, this.scrollTop);
     }
 
     override title() {
@@ -74,60 +87,54 @@ export class Chat extends WorkspaceItem {
         return super.title();
     }
 
-    private updated(messages: AgentMessagesWithProvider) {
-        if (this.name === "New Chat") return;
+    private chatView: ReturnType<typeof createChatView>;
 
-        WorkspaceItem.editorInstance.fileUpdated(
-            this.name,
-            JSON.stringify(messages),
-        );
+    prompt(message: string) {
+        this.chatView?.promptAgent(message);
     }
 
-    prompt: (message: string) => void;
     render() {
         const provider =
             Chat.lastProviderUsed ||
             getFirstProviderAvailable("chat", WorkspaceItem.editorInstance);
 
-        const { container, conversation, promptAgent } = createChatView(
-            WorkspaceItem.editorInstance,
-            provider,
-            (provider) => (Chat.lastProviderUsed = provider),
-            {
-                setTitle: async (title) => {
-                    const sanitized = filenamify(title) + ".chat";
-                    let validName =
-                        WorkspaceItem.editorInstance.opts?.createNewFileName?.(
-                            sanitized,
-                        ) || sanitized;
-                    if (validName instanceof Promise) {
-                        validName = await validName;
-                    }
-                    this.name = validName;
-                    this.title();
-                },
-                onStreamStart: () => {
-                    this.notify(true, true);
-                    this.streaming = true;
-                },
-                onStreamEnd: (messages) => {
-                    this.streaming = false;
-                    const focused =
-                        WorkspaceItem.editorInstance.getWorkspace()?.item
-                            ?.current?.workspaceItem === this;
-                    if (focused) {
-                        this.notify(false);
-                    } else {
-                        this.notify(true);
-                    }
-                    this.updated(messages);
-                },
+        this.chatView = createChatView(WorkspaceItem.editorInstance, provider, {
+            setTitle: async (title) => {
+                const sanitized = filenamify(title) + ".chat";
+                let validName =
+                    WorkspaceItem.editorInstance.opts?.createNewFileName?.(
+                        sanitized,
+                    ) || sanitized;
+                if (validName instanceof Promise) {
+                    validName = await validName;
+                }
+                this.name = validName;
+                this.title();
             },
-        );
+            onStreamStart: (message) => {
+                this.notify(true, true);
+                this.streaming = true;
+                this.addMessage(message);
+            },
+            onStreamEnd: (message) => {
+                this.streaming = false;
+                const focused =
+                    WorkspaceItem.editorInstance.getWorkspace()?.item?.current
+                        ?.workspaceItem === this;
+                if (focused) {
+                    this.notify(false);
+                } else {
+                    this.notify(true);
+                }
+                this.addMessage(message);
+            },
+            onProviderSwitch(p) {
+                Chat.lastProviderUsed = p;
+            },
+            getMessages: () => this.messages,
+        });
 
-        this.conversationContainer = conversation;
-        this.prompt = promptAgent;
-        return container;
+        return this.chatView.container;
     }
     destroy() {}
 }
@@ -163,18 +170,17 @@ export function renderProviderInfos(provider: ProviderAndModel) {
 
 type ChatViewCallbacks = {
     setTitle(title: string): void | Promise<void>;
-    onStreamStart(): void;
-    onStreamEnd(messages: AgentMessagesWithProvider): void;
+    getMessages(): AgentMessagesWithProvider;
+    onStreamStart(userMessage: AgentMessagesWithProvider[0]): void;
+    onStreamEnd(agentMessage: AgentMessagesWithProvider[0]): void;
+    onProviderSwitch(provider: ProviderAndModel): void;
 };
 
 function createChatView(
     editorInstance: Editor,
     provider: ProviderAndModel,
-    didSwitchProvider: (provider: ProviderAndModel) => void,
     cb: ChatViewCallbacks,
 ) {
-    const messages: AgentMessagesWithProvider = [];
-
     const container = document.createElement("div");
     container.classList.add("workspace-view-chat");
     const clearContainer = () =>
@@ -188,21 +194,35 @@ function createChatView(
         userMessage.classList.add("message-box", "user");
         userMessage.innerText = prompt;
         conversation.append(userMessage);
-        messages.push({
-            role: "user",
-            content: prompt,
-        });
     };
 
-    const addAgentMessage = async (
-        agentResponse: Promise<AsyncIterable<string>>,
-    ) => {
-        const firstResponse =
-            messages.filter(({ role }) => role === "agent").length === 0;
-
+    const addAgentMessage = (message?: string) => {
         const agentMessage = document.createElement("div");
         agentMessage.classList.add("message-box", "agent");
         conversation.append(agentMessage);
+
+        if (message) {
+            const renderer = createMarkdownStreamRenderer(
+                editorInstance,
+                provider,
+                agentMessage,
+            );
+            renderer.write(message);
+            renderer.end();
+        }
+
+        return agentMessage;
+    };
+
+    const streamAgentMessage = async (
+        agentResponse: Promise<AsyncIterable<string>>,
+    ) => {
+        const messages = cb.getMessages();
+
+        const firstResponse =
+            messages.filter(({ role }) => role === "agent").length === 0;
+
+        const agentMessage = addAgentMessage();
 
         const streamOrString = await agentResponse;
 
@@ -218,8 +238,6 @@ function createChatView(
             provider: provider.provider.id,
             model: provider.model,
         };
-
-        messages.push(agentMessageText);
 
         const renderer = createMarkdownStreamRenderer(
             editorInstance,
@@ -257,17 +275,22 @@ function createChatView(
         renderer.end();
         await updateTitle();
 
-        cb.onStreamEnd(messages);
+        return agentMessageText;
     };
 
     const promptAgent = (message: string) => {
-        cb.onStreamStart();
         addUserMessage(message);
+        cb.onStreamStart({
+            role: "user",
+            content: message,
+        });
         const agentResponse = editorInstance
             .getAgent()
-            .ask(messages, true, provider);
-        addAgentMessage(agentResponse);
+            .ask(cb.getMessages(), true, provider);
+        streamAgentMessage(agentResponse).then(cb.onStreamEnd);
     };
+
+    let providerInfos: ReturnType<typeof renderProviderInfos>;
 
     const renderConversationView = () => {
         clearContainer();
@@ -289,14 +312,15 @@ function createChatView(
                     provider,
                     (p) => {
                         provider = p;
-                        didSwitchProvider(provider);
+                        cb.onProviderSwitch(provider);
                         renderConversationView();
                     },
                 ),
             );
         };
 
-        top.append(renderProviderInfos(provider), settingsButton);
+        providerInfos = renderProviderInfos(provider);
+        top.append(providerInfos, settingsButton);
 
         const form = document.createElement("form");
         const prompt = InputText({
@@ -318,6 +342,35 @@ function createChatView(
         container,
         conversation,
         promptAgent,
+
+        setMessages(messages: AgentMessagesWithProvider) {
+            let lastAgentMessage: AgentMessagesWithProvider[0];
+            for (const m of messages) {
+                if (m.role === "user") {
+                    addUserMessage(m.content);
+                } else {
+                    addAgentMessage(m.content);
+                    lastAgentMessage = m;
+                }
+            }
+
+            if (lastAgentMessage) {
+                const p = WorkspaceItem.editorInstance
+                    .getAgent()
+                    .providers.find(
+                        ({ id }) => id === lastAgentMessage.provider,
+                    );
+                if (p) {
+                    provider = {
+                        model: lastAgentMessage.model,
+                        provider: p,
+                    };
+                    const updatedProviderInfos = renderProviderInfos(provider);
+                    providerInfos.replaceWith(updatedProviderInfos);
+                    providerInfos = updatedProviderInfos;
+                }
+            }
+        },
     };
 }
 

@@ -37,6 +37,8 @@ codeEditor.addEventListener("agent-configuration-update", (e) => {
 let reopenChat: ReturnType<typeof Button>, messages: string;
 
 codeEditor.addEventListener("file-update", ({ fileUpdate }) => {
+    if (!fileUpdate.name.endsWith(".chat")) return;
+
     if (!reopenChat) {
         reopenChat = Button({
             text: "Reopen " + fileUpdate.name,
@@ -51,8 +53,6 @@ codeEditor.addEventListener("file-update", ({ fileUpdate }) => {
 
     messages = fileUpdate.contents as string;
 });
-
-codeEditor.addEventListener("file-update", console.log);
 
 const main = document.createElement("main");
 const left = document.createElement("div");
