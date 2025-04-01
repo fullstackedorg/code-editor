@@ -40,9 +40,13 @@ export class Chat extends WorkspaceItem {
     private messages: AgentMessagesWithProvider = [];
     loadContents(contents: string) {
         if (contents) {
-            console.log(contents)
+            console.log(contents);
             this.messages = JSON.parse(contents);
             this.chatView.setMessages(this.messages);
+            this.chatView.conversation.scrollTo(
+                0,
+                this.chatView.conversation.scrollHeight,
+            );
         }
     }
     replaceContents: undefined;
@@ -52,7 +56,7 @@ export class Chat extends WorkspaceItem {
 
         if (this.name === "New Chat") return;
 
-        console.log(this.messages)
+        console.log(this.messages);
         WorkspaceItem.editorInstance.fileUpdated(
             this.name,
             JSON.stringify(this.messages),
@@ -161,9 +165,9 @@ export function renderProviderInfos(provider: ProviderAndModel) {
     const providerInfos = document.createElement("div");
     providerInfos.classList.add("infos");
     const providerName = document.createElement("div");
-    providerName.innerText = provider?.provider?.name;
+    providerName.innerText = provider?.provider?.name || "None";
     const providerModel = document.createElement("div");
-    providerModel.innerText = provider?.model;
+    providerModel.innerText = provider?.model || "";
     providerInfos.append(providerName, providerModel);
     return providerInfos;
 }
@@ -379,6 +383,7 @@ export function renderProviderAndModelForm(
     editorInstance: Editor,
     provider: ProviderAndModel,
     didSwitchProvider: (provider: ProviderAndModel) => void,
+    includeNone = false,
 ) {
     const form = document.createElement("form");
     form.classList.add("provider-and-model");
@@ -392,9 +397,16 @@ export function renderProviderAndModelForm(
         .providers.filter((p) => !!p[use]);
     const chatProvidersOpts = availableProviders.map((p) => ({
         name: p.name,
-        selected: p === provider.provider,
+        selected: p === provider?.provider,
     }));
     providersSelect.options.add(...chatProvidersOpts);
+
+    if (includeNone) {
+        providersSelect.options.add({
+            name: "None",
+            id: "none",
+        });
+    }
 
     const modelsSelectContainer = document.createElement("div");
     let modelsSelect: ReturnType<typeof InputSelect>;
@@ -418,7 +430,7 @@ export function renderProviderAndModelForm(
             const modelsOptions = models.map((m) => ({
                 name: m,
                 selected:
-                    provider.provider === p
+                    provider?.provider === p
                         ? m === provider.model
                         : m === p.defaultModels[use],
             }));
@@ -441,13 +453,22 @@ export function renderProviderAndModelForm(
         didSwitchProvider(provider);
     };
     saveButton.onclick = () => {
-        const updatedProvider = {
-            provider: availableProviders.find(
-                (p) => p.name === providersSelect.select.value,
-            ),
-            model: modelsSelect.select.value,
-        };
-        updatedProvider.provider.setModel(use, updatedProvider.model);
+        const p = availableProviders.find(
+            (p) => p.name === providersSelect.select.value,
+        );
+        const updatedProvider = p
+            ? {
+                  provider: p,
+                  model: modelsSelect.select.value,
+              }
+            : null;
+        updatedProvider?.provider?.setModel(use, updatedProvider.model);
+
+        if (!updatedProvider) {
+            AgentProvider.lastUsedProviders[use] = undefined;
+            AgentProvider.editorInstance.updatedAgentConfiguration();
+        }
+
         didSwitchProvider(updatedProvider);
     };
 

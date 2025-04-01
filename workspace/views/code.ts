@@ -139,14 +139,15 @@ export class Code extends WorkspaceItem {
         this.cmView.linters.reload();
     }
 
-    static lastProviderUsed: ProviderAndModel = null;
+    static lastProviderUsed: ProviderAndModel = undefined;
     render() {
         this.provider =
-            Code.lastProviderUsed ||
-            getFirstProviderAvailable(
-                "completion",
-                WorkspaceItem.editorInstance,
-            );
+            typeof Code.lastProviderUsed !== "undefined"
+                ? Code.lastProviderUsed
+                : getFirstProviderAvailable(
+                      "completion",
+                      WorkspaceItem.editorInstance,
+                  );
 
         return renderCodeView(
             WorkspaceItem.editorInstance,
@@ -300,6 +301,7 @@ function renderCodeView(
                             renderView();
                             didSwitchProvider(provider);
                         },
+                        true,
                     ),
                 );
             };

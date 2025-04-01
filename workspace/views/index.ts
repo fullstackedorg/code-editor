@@ -92,6 +92,8 @@ export abstract class WorkspaceItem {
 
     abstract replaceContents(contents: string | Uint8Array): void;
     replace(contents: Contents) {
+        if (!this.replaceContents) return;
+
         if (contents instanceof Promise) {
             return new Promise<void>(async (resolve) => {
                 this.replaceContents(await contents);
