@@ -80,12 +80,15 @@ export function createWorkspace(editorInstance: Editor) {
         }
     };
 
-    function open(name: string, contents: string | Uint8Array): void;
     function open(
         name: string,
-        contents: Promise<string | Uint8Array>,
+        contents?: undefined | string | Uint8Array,
+    ): void;
+    function open(
+        name: string,
+        contents?: Promise<string | Uint8Array>,
     ): Promise<void>;
-    function open(name: string, contents: Contents) {
+    function open(name: string, contents?: Contents) {
         const fileExtension = name.split(".").pop();
         let itemType: WorkspaceItemType = WorkspaceItemType.binary;
 
@@ -105,7 +108,10 @@ export function createWorkspace(editorInstance: Editor) {
 
         if (sameFileOpened) {
             setView(sameFileOpened.workspaceItem);
-            return sameFileOpened.workspaceItem.replace(contents);
+            if (contents !== undefined) {
+                return sameFileOpened.workspaceItem.replace(contents);
+            }
+            return;
         }
 
         let view: WorkspaceItem;
@@ -153,7 +159,10 @@ export function createWorkspace(editorInstance: Editor) {
                 isOpen(name: string) {
                     return !!items.find((i) => i.workspaceItem.name === name);
                 },
-                goTo(name: string, pos: number) {
+                goTo(
+                    name: string,
+                    pos: number | { line: number; col: number },
+                ) {
                     const item = items.find(
                         (i) => i.workspaceItem.name === name,
                     );

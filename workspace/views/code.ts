@@ -168,7 +168,11 @@ export class Code extends WorkspaceItem {
         this.cmView.replaceContents(uint8ToStr(contents));
     }
 
-    async goTo(pos: number) {
+    async goTo(pos: number | { line: number; col: number }) {
+        if (typeof pos === "object") {
+            pos = this.cmView.editorView.state.doc.line(pos.line).from + pos.col;
+        }
+
         const editorView = this.cmView.editorView;
         editorView.dispatch({ selection: { anchor: pos, head: pos } });
 
