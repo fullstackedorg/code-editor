@@ -217,3 +217,13 @@
         }
     }
 }
+
+.widget-anchor {
+    position: relative;
+    .widget-copy {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translate(-100%, -50%);
+    }
+}

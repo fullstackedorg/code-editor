@@ -64,7 +64,7 @@ export class Chat extends WorkspaceItem {
         console.log(this.messages);
         WorkspaceItem.editorInstance.fileUpdated(
             this.name,
-            JSON.stringify(this.messages),
+            JSON.stringify(this.messages, null, 4),
         );
     }
 
@@ -532,7 +532,7 @@ function createMarkdownStreamRenderer(
             style: "icon-small",
         });
         copyToClipButton.onclick = () => {
-            copyToClip(codeView.value);
+            copyToClip(copyToClipButton, codeView.value);
         };
         actions.append(copyToClipButton);
 
@@ -599,12 +599,16 @@ function createMarkdownStreamRenderer(
     };
 }
 
-function copyToClip(text: string) {
-    var input = document.createElement("textarea");
-    input.innerHTML = text;
-    document.body.appendChild(input);
-    input.select();
-    var result = document.execCommand("copy");
-    document.body.removeChild(input);
-    return result;
+async function copyToClip(anchor: HTMLElement, text: string) {
+    const container = document.createElement("div");
+    container.classList.add("widget-copy");
+    container.innerText = "Copied";
+    await navigator.clipboard.writeText(text);
+    anchor.classList.add("widget-anchor");
+    anchor.append(container);
+    setTimeout(() => {
+        container.remove();
+        if(!anchor.querySelector(".widget-copy"))
+            anchor.classList.remove("widget-anchor")
+    }, 2500);
 }
