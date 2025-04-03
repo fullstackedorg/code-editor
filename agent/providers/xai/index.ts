@@ -33,8 +33,6 @@ export class XAI extends AgentProvider<XAIConfiguration, openai> {
             return null;
         }
 
-        console.log(response.data)
-
         return response.data.map(({ id }) => id);
     }
 
