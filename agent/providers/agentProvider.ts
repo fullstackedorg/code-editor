@@ -4,6 +4,7 @@ import { ClaudeConfiguration } from "./claude/config";
 import { MistralConfiguration } from "./mistral/config";
 import { GoogleConfiguration } from "./google/config";
 import { DeepSeekConfiguration } from "./deepseek/config";
+import { XAIConfiguration } from "./xai/config";
 import Editor from "../../editor";
 
 export type AGENT_USE = "chat" | "completion";
@@ -15,7 +16,8 @@ export type AgentConfiguration =
     | ClaudeConfiguration
     | MistralConfiguration
     | GoogleConfiguration
-    | DeepSeekConfiguration;
+    | DeepSeekConfiguration
+    | XAIConfiguration;
 
 export type AgentConfigWithUses = AgentConfiguration & {
     uses: AGENT_USE[];
@@ -80,7 +82,7 @@ export abstract class AgentProvider<T extends AgentConfiguration, C> {
                         if (!value) {
                             continue;
                         }
-                        
+
                         const keyComponents = key.split(".");
 
                         if (!obj[keyComponents[0]]) {
