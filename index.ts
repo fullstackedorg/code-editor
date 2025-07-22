@@ -1,3 +1,4 @@
+import "./connect";
 import fs from "fs";
 import Editor, { Chat, AgentConfigWithUses } from "./editor";
 import eruda from "eruda";
