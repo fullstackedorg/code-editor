@@ -17,6 +17,7 @@ import { Code } from "./code";
 import type f from "filenamify";
 //@ts-ignore
 import ff from "filenamify/browser";
+import { agentAsk, langChainChannel } from "../../connect";
 
 const filenamify: typeof f = ff;
 
@@ -244,8 +245,8 @@ function createChatView(
         const agentMessageText = {
             role: "agent" as const,
             content: "",
-            provider: provider.provider.id,
-            model: provider.model,
+            provider: provider?.provider?.id,
+            model: provider?.model,
         };
 
         const renderer = createMarkdownStreamRenderer(
@@ -256,21 +257,21 @@ function createChatView(
 
         let didUpdateTitle = false;
         const updateTitle = async () => {
-            if (!firstResponse || didUpdateTitle) return;
-            didUpdateTitle = true;
-            const title = await editorInstance.getAgent().ask(
-                [
-                    ...messages,
-                    {
-                        role: "user",
-                        content:
-                            "In less than 5 words, no markdown, text-only, what is the subject?",
-                    },
-                ],
-                false,
-                provider,
-            );
-            await cb.setTitle(title);
+            // if (!firstResponse || didUpdateTitle) return;
+            // didUpdateTitle = true;
+            // const title = await editorInstance.getAgent().ask(
+            //     [
+            //         ...messages,
+            //         {
+            //             role: "user",
+            //             content:
+            //                 "In less than 5 words, no markdown, text-only, what is the subject?",
+            //         },
+            //     ],
+            //     false,
+            //     provider,
+            // );
+            // await cb.setTitle(title);
         };
 
         for await (const chunk of streamOrString) {
@@ -293,10 +294,10 @@ function createChatView(
             role: "user",
             content: message,
         });
-        const agentResponse = editorInstance
-            .getAgent()
-            .ask(cb.getMessages(), true, provider);
-        streamAgentMessage(agentResponse).then(cb.onStreamEnd);
+        // const agentResponse = editorInstance
+        //     .getAgent()
+        //     .ask(cb.getMessages(), true, provider);
+        streamAgentMessage(agentAsk(message)).then(cb.onStreamEnd);
     };
 
     let providerInfos: ReturnType<typeof renderProviderInfos>;
