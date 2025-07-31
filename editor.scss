@@ -1,3 +1,12 @@
-@use "./codemirror/view.scss";
-@use "./agent/configure.scss";
-@use "./workspace/workspace.scss";
+.code-editor {
+    width: 100%;
+    display: flex;
+
+    .file-tree {
+        max-width: 235px;
+    }
+
+    .cm-container {
+        flex: 1;
+    }
+}
