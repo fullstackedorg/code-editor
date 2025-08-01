@@ -2,11 +2,29 @@
     width: 100%;
     display: flex;
 
-    .file-tree {
+    > div {
+        flex: 1;
+    }
+
+    .files-controls {
         max-width: 235px;
+    }
+
+    .conversation {
+        width: 100%;
     }
 
     .cm-container {
         flex: 1;
+    }
+
+    .file-item {
+        .icon svg {
+            height: 16px;
+            width: 16px;
+        }
+        .open {
+            transform: rotate(90deg);
+        }
     }
 }

@@ -1,34 +1,28 @@
-import { createCodeMirrorView } from "@fullstacked/codemirror-view";
-import { createFileTree } from "@fullstacked/file-tree";
+import { createFilesControls } from "./files";
+
+await new Promise((res) => setTimeout(res, 1));
 
 export function createCodeEditor() {
     const element = document.createElement("div");
-    element.classList.add("code-editor")
+    element.classList.add("code-editor");
 
-    const fileTree = createFileTree({
-        readDirectory: () => [
-            {
-                isDirectory: true,
-                name: "directory",
-            },
-            {
-                isDirectory: false,
-                name: "file1.txt",
-            },
-            {
-                isDirectory: false,
-                name: "file2.txt",
-            },
-            {
-                isDirectory: false,
-                name: "file3.txt",
-            },
-        ],
-        isDirectory: () => false,
+    let activeElement: HTMLElement = null;
+    const setActiveElement = (el: HTMLElement) => {
+        if (activeElement) {
+            activeElement.replaceWith(el);
+        } else {
+            rightContainer.append(el);
+        }
+        activeElement = el;
+    };
+
+    const filesControls = createFilesControls({
+        setActiveElement,
     });
-    const cmView = createCodeMirrorView();
 
-    element.append(fileTree.container, cmView.element);
+    const rightContainer = document.createElement("div");
+
+    element.append(filesControls.element, rightContainer);
 
     return {
         element,

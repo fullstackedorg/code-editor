@@ -1,7 +1,8 @@
 {
     "dependencies": {
         "@fullstacked/codemirror-view": "github.com:fullstackedorg/codemirror-view",
-        "@fullstacked/file-tree": "github.com:fullstackedorg/file-tree"
+        "@fullstacked/file-tree": "github.com:fullstackedorg/file-tree",
+        "@fullstacked/ui": "github.com:fullstackedorg/ui"
     },
     "main": "editor.ts",
     "name": "@fullstacked/code-editor",
