@@ -1,15 +1,10 @@
 @use "./node_modules/@fullstacked/file-tree/file-tree.scss";
+@use "./node_modules/@fullstacked/ui/ui.scss";
+@use "./node_modules/@fullstacked/ui/values/colors.scss" as c;
 @use "./editor.scss";
 
 html,
 body {
     font-family: sans-serif;
-}
-
-.file-item:hover {
-    background-color: lightgray !important;
-}
-
-.file-item.active {
-    background-color: bisque !important;
+    background-color: c.$blue-dark;
 }
