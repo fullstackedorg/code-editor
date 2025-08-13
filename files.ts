@@ -2,7 +2,7 @@ import { Button } from "@fullstacked/ui";
 import { createFileTree } from "@fullstacked/file-tree";
 import { Icon } from "@fullstacked/ui";
 import fs from "fs";
-import { createConversation, createOllama } from "ai";
+import { createConversation, createOllama, createToolFS } from "ai";
 import { createCodeMirrorView } from "@fullstacked/codemirror-view";
 import { SupportedLanguage } from "@fullstacked/codemirror-view/languages";
 
@@ -12,6 +12,10 @@ const directoryIconClose = Icon("Caret");
 
 const provider = createOllama();
 const model = (await provider.models()).at(0);
+
+const baseDirectory = "data";
+
+await fs.mkdir(baseDirectory);
 
 export function createFilesControls(opts: {
     setActiveElement(el: HTMLElement): void;
@@ -49,6 +53,9 @@ export function createFilesControls(opts: {
             createConversation({
                 provider,
                 model,
+                tools: createToolFS({
+                    baseDirectory,
+                }),
             }).element,
         );
     };
