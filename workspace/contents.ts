@@ -10,7 +10,7 @@ export function uint8ToStr(contents: Uint8Array | string): string {
     throw "Received neither Uint8Array or string";
 }
 
-export function strToUint8(contents: Uint8Array | string): Uint8Array {
+export function strToUint8(contents: Uint8Array<ArrayBuffer> | string): Uint8Array<ArrayBuffer> {
     if (contents instanceof Uint8Array) {
         return contents;
     } else if (typeof contents === "string") {

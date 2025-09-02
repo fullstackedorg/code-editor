@@ -143,11 +143,11 @@
             "name": "@codemirror/language",
             "version": "6.11.0",
             "as": [
+                "^6.0.0",
+                "^6.4.0",
                 "^6.6.0",
                 "^6.8.0",
-                "^6.0.0",
-                "^6.3.0",
-                "^6.4.0"
+                "^6.3.0"
             ],
             "location": [
                 "node_modules"
@@ -178,8 +178,8 @@
             "version": "6.5.2",
             "as": [
                 "^6.0.0",
-                "^6.5.0",
-                "^6.4.0"
+                "^6.4.0",
+                "^6.5.0"
             ],
             "location": [
                 "node_modules"
@@ -200,10 +200,10 @@
             "version": "6.36.4",
             "as": [
                 "^6.36.4",
-                "^6.17.0",
                 "^6.0.0",
-                "^6.23.0",
+                "^6.17.0",
                 "^6.27.0",
+                "^6.23.0",
                 "^6.35.0"
             ],
             "location": [
@@ -226,10 +226,10 @@
             "version": "1.2.3",
             "as": [
                 "^1.0.0",
-                "^1.2.1",
-                "^1.1.0",
                 "^1.0.2",
-                "^1.2.0"
+                "^1.2.0",
+                "^1.1.0",
+                "^1.2.1"
             ],
             "location": [
                 "node_modules"
@@ -301,8 +301,8 @@
             "name": "@lezer/lr",
             "version": "1.4.2",
             "as": [
-                "^1.0.0",
                 "^1.3.1",
+                "^1.0.0",
                 "^1.3.0"
             ],
             "location": [
@@ -366,8 +366,8 @@
                 "^18.11.18"
             ],
             "location": [
-                "node_modules/openai/node_modules",
-                "node_modules/@anthropic-ai/sdk/node_modules"
+                "node_modules/@anthropic-ai/sdk/node_modules",
+                "node_modules/openai/node_modules"
             ]
         },
         {
@@ -822,8 +822,8 @@
                 "~5.26.4"
             ],
             "location": [
-                "node_modules/openai/node_modules/@types/node/node_modules",
-                "node_modules/@anthropic-ai/sdk/node_modules/@types/node/node_modules"
+                "node_modules/@anthropic-ai/sdk/node_modules/@types/node/node_modules",
+                "node_modules/openai/node_modules/@types/node/node_modules"
             ]
         },
         {

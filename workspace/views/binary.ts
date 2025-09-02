@@ -9,7 +9,7 @@ export class Binary extends WorkspaceItem {
     byteLength: number;
     container = document.createElement("div");
 
-    convertToCode(contents: string | Uint8Array) {
+    convertToCode(contents: string | Uint8Array<ArrayBuffer>) {
         const workspace = WorkspaceItem.editorInstance.getWorkspace();
         workspace.item.remove(this);
         const codeView = new Code(this.name);
@@ -17,7 +17,7 @@ export class Binary extends WorkspaceItem {
         return codeView.init(contents);
     }
 
-    loadContents(contents: string | Uint8Array) {
+    loadContents(contents: string | Uint8Array<ArrayBuffer>) {
         if (
             typeof contents === "string" &&
             contents.length < 1000000 // ~2 mb (string is utf-16)
@@ -46,7 +46,7 @@ export class Binary extends WorkspaceItem {
         this.container.innerText = prettyBytes(strToUint8(contents).byteLength);
     }
 
-    replaceContents(contents: Uint8Array | string) {
+    replaceContents(contents: Uint8Array<ArrayBuffer> | string) {
         this.container.innerText = prettyBytes(strToUint8(contents).byteLength);
     }
 

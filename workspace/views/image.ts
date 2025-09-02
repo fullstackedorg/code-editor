@@ -7,7 +7,7 @@ export class Image extends WorkspaceItem {
 
     image: HTMLImageElement = document.createElement("img");
 
-    loadContents(contents: string | Uint8Array) {
+    loadContents(contents: string | Uint8Array<ArrayBuffer>) {
         const data = strToUint8(contents);
         const fileExtension = this.name.split(".").pop();
         this.image.src = URL.createObjectURL(
